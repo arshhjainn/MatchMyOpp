@@ -20,7 +20,7 @@ export default function ProductHeader() {
         </nav>
         <div className="flex items-center gap-3">
           <LanguageSwitcher className="text-gray-600" />
-          <a href="http://127.0.0.1:8000/docs" target="_blank" rel="noreferrer" className="hidden text-xs font-semibold text-gray-500 hover:text-[#E8192C] md:inline">API docs ↗</a>
+          <a href="https://matchmyopp.onrender.com/docs" target="_blank" rel="noreferrer" className="hidden text-xs font-semibold text-gray-500 hover:text-[#E8192C] md:inline">API docs ↗</a>
           <span title={`API ${apiStatus}`} className="hidden items-center gap-1.5 text-xs font-medium text-gray-500 lg:flex"><span className={`h-2 w-2 rounded-full ${apiStatus === 'online' ? 'bg-emerald-500' : apiStatus === 'offline' ? 'bg-red-500' : 'bg-amber-400'}`} />{apiStatus === 'online' ? 'API online' : apiStatus === 'offline' ? 'API offline' : 'Connecting'}</span>
           <Link to="/onboarding" className="hidden rounded-full bg-[#E8192C] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#C8111E] sm:inline-flex">{t('Your profile')}</Link>
         </div>
