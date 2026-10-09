@@ -14,28 +14,36 @@ APPLICATION_COLUMNS = {
     "updated_at": "DATETIME NULL",
     "submitted_at": "DATE NULL",
 }
+STUDENT_COLUMNS = {
+    "email": "VARCHAR(254) NULL",
+    "email_reminders_enabled": "BOOLEAN NOT NULL DEFAULT 0",
+}
 
 
 def migrate_application_columns(database_engine):
-    inspector = inspect(database_engine)
-    if not inspector.has_table("applications"):
-        return
-
-    existing = {column["name"] for column in inspector.get_columns("applications")}
-    for column_name, sql_type in APPLICATION_COLUMNS.items():
-        if column_name in existing:
+    for table_name, columns in (
+        ("applications", APPLICATION_COLUMNS),
+        ("students", STUDENT_COLUMNS),
+    ):
+        inspector = inspect(database_engine)
+        if not inspector.has_table(table_name):
             continue
 
-        try:
-            with database_engine.begin() as connection:
-                # Column names and types come only from this module's constants.
-                connection.execute(text(
-                    f"ALTER TABLE applications ADD COLUMN {column_name} {sql_type}"
-                ))
-        except SQLAlchemyError:
-            # If multiple app processes race on the same startup migration,
-            # ignore the duplicate-column error only when the column now exists.
-            refreshed = inspect(database_engine)
-            if column_name not in {column["name"] for column in refreshed.get_columns("applications")}:
-                raise
-        existing.add(column_name)
+        existing = {column["name"] for column in inspector.get_columns(table_name)}
+        for column_name, sql_type in columns.items():
+            if column_name in existing:
+                continue
+
+            try:
+                with database_engine.begin() as connection:
+                    # Names and types come only from constants in this module.
+                    connection.execute(text(
+                        f"ALTER TABLE {table_name} ADD COLUMN {column_name} {sql_type}"
+                    ))
+            except SQLAlchemyError:
+                # Concurrent service starts may race on an additive migration.
+                refreshed = inspect(database_engine)
+                current = {column["name"] for column in refreshed.get_columns(table_name)}
+                if column_name not in current:
+                    raise
+            existing.add(column_name)

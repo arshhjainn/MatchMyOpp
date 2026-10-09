@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 from application_logic import (
     deadline_entry,
+    due_reminder_windows,
     is_valid_application_status,
     parse_reminder_windows,
 )
@@ -74,6 +75,22 @@ class ApplicationLogicTests(unittest.TestCase):
                 entry = deadline_entry(application(status), opportunity(deadline), date(2026, 10, 10), [1])
                 self.assertFalse(entry["actionable"])
                 self.assertEqual(entry["reminder_windows_due"], [])
+
+    def test_email_reminders_require_opt_in_email_actionable_status_and_matching_window(self):
+        today = date(2026, 10, 10)
+        due = today + timedelta(days=3)
+        common = {
+            "deadline": due,
+            "today": today,
+            "reminder_windows": [7, 3, 1],
+            "email": "student@example.edu",
+            "opted_in": True,
+        }
+        self.assertEqual(due_reminder_windows(status="Preparing", **common), [3])
+        self.assertEqual(due_reminder_windows(status="Applied", **common), [])
+        self.assertEqual(due_reminder_windows(status="Interested", **{**common, "opted_in": False}), [])
+        self.assertEqual(due_reminder_windows(status="Interested", **{**common, "email": None}), [])
+        self.assertEqual(due_reminder_windows(status="Interested", **{**common, "deadline": due + timedelta(days=1)}), [])
 
 
 if __name__ == "__main__":
