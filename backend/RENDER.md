@@ -1,6 +1,6 @@
 # Deploy the API on Render
 
-This API uses MySQL. Create or use a reachable MySQL database first; Render's web service needs its host, port, database name, user, and password.
+This API uses MySQL. Create or use a reachable MySQL database first; Render's web service needs its host, port, database name, user, and password. TiDB Cloud Starter is a free MySQL-compatible option for a prototype; its connection requires TLS. Check the provider's current limits and region availability before creating the cluster.
 
 ## Configure the Render Web Service
 
@@ -12,13 +12,17 @@ Connect the `arshhjainn/MatchMyOpp` GitHub repository and select the `backend` b
 - **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
 - **Health Check Path:** `/api/health`
 
-Add these environment variables in Render using the values from the MySQL provider:
+Add these environment variables in Render using the values from the database provider:
 
 - `DB_USER`
 - `DB_PASSWORD`
 - `DB_HOST`
-- `DB_PORT` (usually `3306`)
+- `DB_PORT` (`4000` for TiDB Cloud; otherwise use the provider's port)
 - `DB_NAME`
+- `DB_SSL=true` for TLS-required providers such as TiDB Cloud
+- `DB_SSL_CA=/etc/ssl/certs/ca-certificates.crt` when TLS is enabled
+
+For TiDB Cloud, copy the host and generated username from its connection panel (the username may include an account prefix), use port `4000`, and set the database name to `opportunity_radar`. Create that database/schema in TiDB if it is not already present. Enter the password directly in Render; do not commit it or send it in chat.
 
 Never put live database credentials in Git. `backend/.env.example` documents the local names only.
 
