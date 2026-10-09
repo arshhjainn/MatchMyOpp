@@ -197,7 +197,7 @@ export default function DiscoverPage() {
         <Link to="/onboarding" className="font-bold text-[#E8192C] hover:text-[#C8111E]">Complete your profile</Link> to personalize match scores and eligibility.
       </div>}
 
-      {apiStatus === 'offline' && <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Demo mode: showing locally saved sample opportunities. Your profile, swipes, and tracker updates stay on this device until the API is available.</div>}
+      {apiStatus === 'offline' && <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">The backend is unavailable. This feed requires a connection to the MatchMyOpp API.</div>}
 
       {error && <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-[#C8111E]"><span>{error}</span><button onClick={loadOpportunities} className="font-bold underline">Retry</button></div>}
       <p className="mb-3 text-xs font-medium text-gray-400">{loading ? 'Loading opportunities…' : `${visible.length} opportunities in your feed`}</p>

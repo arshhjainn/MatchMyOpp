@@ -1,4 +1,4 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '')
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://matchmyopp.onrender.com').replace(/\/+$/, '')
 
 async function request(path, options = {}) {
   let response
@@ -8,7 +8,7 @@ async function request(path, options = {}) {
       headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers },
     })
   } catch {
-    throw new Error(`Cannot reach the Opportunity Radar API at ${API_BASE_URL}. Start the FastAPI server and try again.`)
+    throw new Error(`Cannot connect to the backend at ${API_BASE_URL}. Check that it is online and allows this frontend in CORS.`)
   }
 
   const text = await response.text()
@@ -17,7 +17,9 @@ async function request(path, options = {}) {
   if (!response.ok) {
     const detail = typeof payload === 'object' && payload ? payload.detail : null
     const message = Array.isArray(detail) ? detail.map(item => item.msg).join(', ') : detail
-    throw new Error(message || `API request failed (${response.status}).`)
+    const error = new Error(message || `API request failed (${response.status}).`)
+    error.status = response.status
+    throw error
   }
   return payload
 }
@@ -101,7 +103,10 @@ export const api = {
     const returned = payload?.profile ?? payload?.student ?? payload
     return normalizeProfile({ ...profile, ...(returned ?? {}) })
   },
-  getOpportunities: async studentId => unwrapList(await request(`/api/opportunities?student_id=${encodeURIComponent(studentId)}`), ['opportunities', 'items', 'results', 'eligible_opportunities']).map(item => normalizeOpportunity(item.opportunity ?? item)),
+  getOpportunities: async studentId => {
+    const query = studentId ? `?student_id=${encodeURIComponent(studentId)}` : ''
+    return unwrapList(await request(`/api/opportunities${query}`), ['opportunities', 'items', 'results', 'eligible_opportunities']).map(item => normalizeOpportunity(item.opportunity ?? item))
+  },
   getOpportunity: async opportunityId => {
     const payload = await request(`/api/opportunities/${encodeURIComponent(opportunityId)}`)
     return normalizeOpportunity(payload?.opportunity ?? payload)

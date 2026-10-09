@@ -1,18 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { OpportunityContext } from './OpportunityContext'
-import { api, normalizeApplication, normalizeOpportunity, normalizeProfile } from '../api/client'
-import mockOpportunities from '../data/opportunities.json'
+import { api, normalizeApplication, normalizeProfile } from '../api/client'
 
 const PROFILE_STORAGE_KEY = 'matchmyopp-student-profile'
-const SWIPES_STORAGE_KEY = 'matchmyopp-demo-swipes'
-const APPLICATIONS_STORAGE_KEY = 'matchmyopp-demo-applications'
-
-const readJson = (key, fallback) => {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fallback } catch { return fallback }
-}
-const isNetworkUnavailable = cause => cause.message.startsWith('Cannot reach the Opportunity Radar API')
-const getLocalSwipes = () => readJson(SWIPES_STORAGE_KEY, {})
-const getLocalApplications = () => readJson(APPLICATIONS_STORAGE_KEY, [])
+const isConnectionError = cause => cause.message.startsWith('Cannot connect to the backend')
 
 function readProfile() {
   try {
@@ -39,7 +30,6 @@ export function OpportunityProvider({ children }) {
   }, [profile])
 
   const loadOpportunities = useCallback(async (showLoading = true) => {
-    if (!studentId) return []
     if (showLoading) setLoading(true)
     setError('')
     try {
@@ -49,13 +39,9 @@ export function OpportunityProvider({ children }) {
       return items
     } catch (cause) {
       setError(cause.message)
-      if (!isNetworkUnavailable(cause)) return []
-      setApiStatus('offline')
-      const swipes = getLocalSwipes()
-      const localItems = mockOpportunities.map(item => normalizeOpportunity(item))
-        .filter(item => !swipes[item.id])
-      setOpportunities(localItems)
-      return localItems
+      setApiStatus(isConnectionError(cause) ? 'offline' : 'online')
+      setOpportunities([])
+      return []
     } finally {
       if (showLoading) setLoading(false)
     }
@@ -66,15 +52,13 @@ export function OpportunityProvider({ children }) {
     try {
       const items = await api.getSaved(studentId)
       setSaved(items)
+      setApiStatus('online')
       return items
     } catch (cause) {
       setError(cause.message)
-      if (!isNetworkUnavailable(cause)) return []
-      setApiStatus('offline')
-      const swipes = getLocalSwipes()
-      const localItems = mockOpportunities.map(item => normalizeOpportunity(item)).filter(item => swipes[item.id] === 'like')
-      setSaved(localItems)
-      return localItems
+      setApiStatus(isConnectionError(cause) ? 'offline' : 'online')
+      setSaved([])
+      return []
     }
   }, [studentId])
 
@@ -83,14 +67,13 @@ export function OpportunityProvider({ children }) {
     try {
       const items = await api.getApplications(studentId)
       setApplications(items)
+      setApiStatus('online')
       return items
     } catch (cause) {
       setError(cause.message)
-      if (!isNetworkUnavailable(cause)) return []
-      setApiStatus('offline')
-      const items = getLocalApplications().filter(item => item.studentId === studentId)
-      setApplications(items)
-      return items
+      setApiStatus(isConnectionError(cause) ? 'offline' : 'online')
+      setApplications([])
+      return []
     }
   }, [studentId])
 
@@ -98,12 +81,7 @@ export function OpportunityProvider({ children }) {
     let active = true
     api.health()
       .then(() => { if (active) setApiStatus('online') })
-      .catch(() => {
-        if (!active) return
-        setApiStatus('offline')
-        const swipes = getLocalSwipes()
-        setOpportunities(mockOpportunities.map(item => normalizeOpportunity(item)).filter(item => !swipes[item.id]))
-      })
+      .catch(cause => { if (active) { setApiStatus(isConnectionError(cause) ? 'offline' : 'online'); setError(cause.message) } })
     return () => { active = false }
   }, [])
 
@@ -112,16 +90,22 @@ export function OpportunityProvider({ children }) {
     let active = true
     api.getProfile(studentId)
       .then(remoteProfile => { if (active && remoteProfile) setProfile(remoteProfile) })
-      .catch(cause => { if (active && !isNetworkUnavailable(cause)) setError(cause.message) })
+      .catch(cause => {
+        if (!active) return
+        setApiStatus(isConnectionError(cause) ? 'offline' : 'online')
+        setError(cause.message)
+        if (cause.status === 404) setProfile(null)
+      })
     return () => { active = false }
   }, [studentId])
 
   useEffect(() => {
-    if (!studentId) return undefined
     const refresh = window.setTimeout(() => {
       loadOpportunities(false)
-      loadSaved()
-      loadApplications()
+      if (studentId) {
+        loadSaved()
+        loadApplications()
+      }
     }, 0)
     return () => window.clearTimeout(refresh)
   }, [profile, studentId, loadOpportunities, loadSaved, loadApplications])
@@ -135,14 +119,9 @@ export function OpportunityProvider({ children }) {
       setApiStatus('online')
       return savedProfile
     } catch (cause) {
-      if (!isNetworkUnavailable(cause)) {
-        setError(cause.message)
-        throw cause
-      }
-      setProfile(normalizeProfile(studentProfile))
-      setApiStatus('offline')
-      setError('API is offline. Your profile is saved on this device for the demo.')
-      return normalizeProfile(studentProfile)
+      setApiStatus(isConnectionError(cause) ? 'offline' : 'online')
+      setError(cause.message)
+      throw cause
     }
   }
 
@@ -155,17 +134,7 @@ export function OpportunityProvider({ children }) {
       setApiStatus('online')
       return foundProfile
     } catch (cause) {
-      if (!isNetworkUnavailable(cause)) {
-        setError(cause.message)
-        throw cause
-      }
-      const localProfile = readProfile()
-      if (localProfile?.student_id === studentId) {
-        setProfile(localProfile)
-        setApiStatus('offline')
-        setError('API is offline. Loaded your profile saved on this device.')
-        return localProfile
-      }
+      setApiStatus(isConnectionError(cause) ? 'offline' : 'online')
       setError(cause.message)
       throw cause
     }
@@ -183,15 +152,7 @@ export function OpportunityProvider({ children }) {
       if (action === 'like') await loadSaved()
       return true
     } catch (cause) {
-      if (isNetworkUnavailable(cause)) {
-        const swipes = { ...getLocalSwipes(), [opportunityId]: action }
-        localStorage.setItem(SWIPES_STORAGE_KEY, JSON.stringify(swipes))
-        setApiStatus('offline')
-        setOpportunities(items => items.filter(item => item.id !== opportunityId))
-        if (action === 'like') setSaved(mockOpportunities.map(item => normalizeOpportunity(item)).filter(item => swipes[item.id] === 'like'))
-        setError('API is offline. Your swipe is saved on this device for the demo.')
-        return true
-      }
+      setApiStatus(isConnectionError(cause) ? 'offline' : 'online')
       setError(cause.message)
       return false
     }
@@ -217,20 +178,7 @@ export function OpportunityProvider({ children }) {
       setError('')
       return application
     } catch (cause) {
-      if (isNetworkUnavailable(cause)) {
-        const opportunity = mockOpportunities.find(item => String(item.id) === String(opportunityId))
-        const application = normalizeApplication({
-          id: `demo-application-${Date.now()}`, opportunity_id: opportunityId,
-          opportunity_title: opportunity?.title, deadline: opportunity?.deadline,
-          application_url: opportunity?.application_url, status: 'Interested', notes,
-        })
-        const items = [application, ...getLocalApplications().filter(item => !(item.studentId === studentId && String(item.opportunityId) === String(opportunityId)))]
-        localStorage.setItem(APPLICATIONS_STORAGE_KEY, JSON.stringify(items.map(item => ({ ...item, studentId }))))
-        setApplications(items)
-        setApiStatus('offline')
-        setError('API is offline. Your application tracker entry is saved on this device for the demo.')
-        return application
-      }
+      setApiStatus(isConnectionError(cause) ? 'offline' : 'online')
       setError(cause.message)
       return null
     }
@@ -244,14 +192,7 @@ export function OpportunityProvider({ children }) {
       setError('')
       return updated
     } catch (cause) {
-      if (isNetworkUnavailable(cause)) {
-        const items = getLocalApplications().map(item => item.id === applicationId ? { ...item, ...changes } : item)
-        localStorage.setItem(APPLICATIONS_STORAGE_KEY, JSON.stringify(items))
-        const updated = items.find(item => item.id === applicationId)
-        setApplications(items.filter(item => item.studentId === studentId))
-        setApiStatus('offline')
-        return updated
-      }
+      setApiStatus(isConnectionError(cause) ? 'offline' : 'online')
       setError(cause.message)
       return null
     }
@@ -263,11 +204,8 @@ export function OpportunityProvider({ children }) {
       setApiStatus('online')
       return item
     } catch (cause) {
-      if (!isNetworkUnavailable(cause)) throw cause
       setApiStatus('offline')
-      const item = mockOpportunities.find(entry => String(entry.id) === String(opportunityId))
-      if (!item) throw cause
-      return normalizeOpportunity(item)
+      throw cause
     }
   }, [])
 
