@@ -1,6 +1,6 @@
 # Deploy the API on Render
 
-This API uses MySQL. Create or use a reachable MySQL database first; Render's web service needs its host, port, database name, user, and password. TiDB Cloud Starter is a free MySQL-compatible option for a prototype; its connection requires TLS. Check the provider's current limits and region availability before creating the cluster.
+This API uses MySQL-compatible storage. The current deployment is connected to TiDB Cloud; keep its current `DB_*` settings unless you intentionally move databases. The application tracker migration adds only nullable columns and preserves existing rows.
 
 ## Configure the Render Web Service
 
@@ -31,7 +31,7 @@ Never put live database credentials in Git. `backend/.env.example` documents the
 `backend/main.py` allows `https://matchmyopp.vercel.app`, plus the two local Vite origins. After deployment, check `GET /api/health`, then check a profile preflight from a terminal:
 
 ```sh
-curl -i -X OPTIONS 'https://matchmyopp.onrender.com/api/profile' \
+curl -i -X OPTIONS 'https://matchmyopp-1.onrender.com/api/profile' \
   -H 'Origin: https://matchmyopp.vercel.app' \
   -H 'Access-Control-Request-Method: POST' \
   -H 'Access-Control-Request-Headers: content-type'
@@ -39,4 +39,31 @@ curl -i -X OPTIONS 'https://matchmyopp.onrender.com/api/profile' \
 
 The response should include `access-control-allow-origin: https://matchmyopp.vercel.app` and permit `POST` and `content-type`. A successful response from `/` alone does not confirm CORS is configured.
 
-The frontend is configured to use `https://matchmyopp.onrender.com` by default. Override it only when a different API URL is intentionally used.
+The frontend is configured to use `https://matchmyopp-1.onrender.com` by default. Override it only when a different API URL is intentionally used.
+
+## Application tracker and deadline APIs
+
+The deployed application runs an idempotent startup migration after `create_all()`:
+
+- Adds nullable `created_at DATETIME`, `updated_at DATETIME`, and `submitted_at DATE` columns to an existing `applications` table when missing.
+- Does not drop tables, rewrite existing values, or infer dates for older rows.
+- Existing application rows remain valid; their timestamps remain `NULL` until new edits provide an update timestamp.
+
+Application status values are `Interested`, `Preparing`, `Applied`, `Shortlisted`, `Interview`, `Selected`, `Rejected`, and `Withdrawn`. The legacy value `Accepted` remains readable/updatable for existing records. New unsupported status values return HTTP 422. Moving an application to `Applied` sets `submitted_at` once; later status changes do not overwrite it.
+
+New and extended routes:
+
+- `GET /api/applications/{student_id}` returns tracker rows joined with their opportunity title, category, actual deadline, official application URL, notes, and timestamps. Its original response fields remain present.
+- `GET /api/application/{application_id}` returns one application with the same response shape. The singular route avoids colliding with the existing student list route.
+- `GET /api/dashboard/{student_id}` returns tracked/submitted/shortlisted counts and deadline totals.
+- `GET /api/deadlines/{student_id}?reminder_windows=7,3,1` groups actual opportunity deadlines into due today, 3 days, 7 days, upcoming, overdue, and unknown. `reminder_candidates` only includes still-actionable `Interested`/`Preparing` applications exactly 7, 3, or 1 day before the deadline. `delivery` is `in_app_only`.
+
+Deadline/reminder responses are derived on each GET, not persisted notifications. Re-reading the feed returns the current reminder candidate again by design; the backend does not send email or push messages, and does not claim delivery. Each student/opportunity pair remains unique through the existing database constraint.
+
+Run the pure backend logic checks from the `backend` directory:
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+Deploy by pushing the `backend` branch. Render uses the existing service's `backend` root directory and runs the migration on startup. No additional environment variable is required for the in-app deadline feed; email delivery is not configured.

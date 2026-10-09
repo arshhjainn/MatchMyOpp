@@ -4,6 +4,7 @@ from sqlalchemy import (
     Integer,
     Text,
     Date,
+    DateTime,
     ForeignKey,
     UniqueConstraint,
 )
@@ -82,3 +83,6 @@ class Application(Base):
     )
     status = Column(String(30), nullable=False, default="Interested")
     notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, nullable=True)
+    submitted_at = Column(Date, nullable=True)

@@ -1,13 +1,23 @@
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Optional
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Path, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from database import Base, engine, get_db
 from models import Student, Opportunity, Swipe, Application
+from application_logic import (
+    APPLICATION_STATUSES,
+    SUBMITTED_APPLICATION_STATUSES,
+    application_payload,
+    deadline_entry,
+    is_valid_application_status,
+    parse_reminder_windows,
+)
+from migrations import migrate_application_columns
 
 app = FastAPI(title="Opportunity Radar API")
 
@@ -27,6 +37,7 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
+    migrate_application_columns(engine)
 
 
 class ProfileInput(BaseModel):
@@ -60,15 +71,50 @@ class SwipeInput(BaseModel):
 
 
 class ApplicationInput(BaseModel):
-    student_id: str
-    opportunity_id: int
-    status: str = "Interested"
-    notes: Optional[str] = None
+    student_id: str = Field(min_length=1, max_length=50)
+    opportunity_id: int = Field(gt=0)
+    status: str = Field(
+        default="Interested",
+        min_length=1,
+        max_length=30,
+        description="Interested, Preparing, Applied, Shortlisted, Interview, Selected, Rejected, or Withdrawn",
+    )
+    notes: Optional[str] = Field(default=None, max_length=10000)
 
 
 class ApplicationUpdate(BaseModel):
-    status: Optional[str] = None
-    notes: Optional[str] = None
+    status: Optional[str] = Field(
+        default=None,
+        min_length=1,
+        max_length=30,
+        description="One of the supported application statuses; legacy Accepted values remain valid for existing records",
+    )
+    notes: Optional[str] = Field(default=None, max_length=10000)
+
+
+def utc_now_naive():
+    """Return UTC for MySQL DATETIME columns, which don't preserve tzinfo."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+def validate_application_status(status: Optional[str], current: Optional[str] = None):
+    if not is_valid_application_status(status, current):
+        choices = ", ".join(sorted(APPLICATION_STATUSES))
+        raise HTTPException(status_code=422, detail=f"Status must be one of: {choices}")
+
+
+def get_student_application_entries(student_id: str, db: Session):
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    rows = (
+        db.query(Application, Opportunity)
+        .outerjoin(Opportunity, Application.opportunity_id == Opportunity.id)
+        .filter(Application.student_id == student_id)
+        .order_by(Application.created_at.desc(), Application.id.desc())
+        .all()
+    )
+    return [(application, opportunity) for application, opportunity in rows]
 
 
 @app.get("/")
@@ -340,13 +386,21 @@ def get_saved(student_id: str, db: Session = Depends(get_db)):
     return saved
 
 
-@app.post("/api/applications")
+@app.post(
+    "/api/applications",
+    summary="Add an application to the tracker",
+    description="Creates one tracker entry. Duplicate student/opportunity pairs return HTTP 409. New entries start as Interested by default.",
+)
 def create_application(
     data: ApplicationInput,
     db: Session = Depends(get_db)
 ):
+    student_id = data.student_id.strip()
+    if not student_id:
+        raise HTTPException(status_code=422, detail="student_id cannot be blank")
+
     student = db.query(Student).filter(
-        Student.student_id == data.student_id
+        Student.student_id == student_id
     ).first()
 
     opportunity = db.query(Opportunity).filter(
@@ -359,56 +413,94 @@ def create_application(
     if not opportunity:
         raise HTTPException(status_code=404, detail="Opportunity not found")
 
+    validate_application_status(data.status)
+
     existing = db.query(Application).filter(
-        Application.student_id == data.student_id,
+        Application.student_id == student_id,
         Application.opportunity_id == data.opportunity_id
     ).first()
 
     if existing:
         raise HTTPException(
-            status_code=400,
+            status_code=409,
             detail="Application tracker entry already exists"
         )
 
-    application = Application(**data.model_dump())
+    now = utc_now_naive()
+    application = Application(
+        student_id=student_id,
+        opportunity_id=data.opportunity_id,
+        status=data.status,
+        notes=data.notes,
+        created_at=now,
+        updated_at=now,
+        submitted_at=now.date() if data.status.lower() in SUBMITTED_APPLICATION_STATUSES else None,
+    )
     db.add(application)
-    db.commit()
-    db.refresh(application)
+    try:
+        db.commit()
+        db.refresh(application)
+    except IntegrityError:
+        db.rollback()
+        # The model's unique constraint is the final guard against two
+        # simultaneous requests creating the same student/opportunity pair.
+        duplicate = db.query(Application).filter(
+            Application.student_id == student_id,
+            Application.opportunity_id == data.opportunity_id,
+        ).first()
+        if duplicate:
+            raise HTTPException(status_code=409, detail="Application tracker entry already exists")
+        raise
 
     return {
         "message": "Application added",
         "application_id": application.id,
+        **application_payload(application, opportunity),
     }
 
 
-@app.get("/api/applications/{student_id}")
-def get_applications(student_id: str, db: Session = Depends(get_db)):
-    applications = db.query(Application).filter(
-        Application.student_id == student_id
-    ).all()
-
-    results = []
-
-    for application in applications:
-        opportunity = db.query(Opportunity).filter(
-            Opportunity.id == application.opportunity_id
-        ).first()
-
-        results.append({
-            "id": application.id,
-            "opportunity_id": application.opportunity_id,
-            "title": opportunity.title if opportunity else "Unknown",
-            "status": application.status,
-            "notes": application.notes,
-        })
-
-    return results
+@app.get(
+    "/api/applications/{student_id}",
+    summary="List a student's tracked applications",
+    description="Returns application fields plus the linked opportunity's title, category, actual deadline, and application URL.",
+)
+def get_applications(
+    student_id: str = Path(min_length=1, max_length=50),
+    db: Session = Depends(get_db),
+):
+    rows = get_student_application_entries(student_id, db)
+    return [application_payload(application, opportunity) for application, opportunity in rows]
 
 
-@app.patch("/api/applications/{application_id}")
+@app.get(
+    "/api/application/{application_id}",
+    summary="Get one tracked application",
+    description="Uses a singular route to avoid ambiguity with the existing student application list route.",
+)
+def get_application(
+    application_id: int = Path(gt=0),
+    db: Session = Depends(get_db),
+):
+    row = (
+        db.query(Application, Opportunity)
+        .outerjoin(Opportunity, Application.opportunity_id == Opportunity.id)
+        .filter(Application.id == application_id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Application not found")
+    application, opportunity = row
+    return application_payload(application, opportunity)
+
+
+@app.patch(
+    "/api/applications/{application_id}",
+    summary="Update application status or notes",
+    description="Updates only supplied fields. Moving status to Applied records submitted_at once and does not overwrite it later.",
+)
 def update_application(
-    application_id: int,
     data: ApplicationUpdate,
+    application_id: int = Path(gt=0),
     db: Session = Depends(get_db)
 ):
     application = db.query(Application).filter(
@@ -419,11 +511,95 @@ def update_application(
         raise HTTPException(status_code=404, detail="Application not found")
 
     updates = data.model_dump(exclude_unset=True)
+    if not updates:
+        raise HTTPException(status_code=422, detail="Provide a status or notes value to update")
+    if "status" in updates:
+        validate_application_status(updates["status"], current=application.status)
+        if updates["status"] is None:
+            raise HTTPException(status_code=422, detail="status cannot be null")
 
     for key, value in updates.items():
         setattr(application, key, value)
 
+    if (updates.get("status") or "").lower() in SUBMITTED_APPLICATION_STATUSES and application.submitted_at is None:
+        application.submitted_at = utc_now_naive().date()
+    application.updated_at = utc_now_naive()
+
     db.commit()
     db.refresh(application)
 
-    return {"message": "Application updated successfully"}
+    opportunity = db.query(Opportunity).filter(Opportunity.id == application.opportunity_id).first()
+    return {
+        "message": "Application updated successfully",
+        **application_payload(application, opportunity),
+    }
+
+
+@app.get(
+    "/api/deadlines/{student_id}",
+    summary="List tracked deadlines and in-app reminder candidates",
+    description="Groups actual opportunity deadlines and returns reminder windows due today. This endpoint does not send email or push notifications.",
+)
+def get_deadlines(
+    student_id: str = Path(min_length=1, max_length=50),
+    reminder_windows: str = Query(default="7,3,1", description="Comma-separated reminder windows in days, from 1 to 30"),
+    db: Session = Depends(get_db),
+):
+    try:
+        windows = parse_reminder_windows(reminder_windows)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    rows = get_student_application_entries(student_id, db)
+    today = datetime.now(timezone.utc).date()
+    groups = {
+        "due_today": [],
+        "due_within_3_days": [],
+        "due_within_7_days": [],
+        "upcoming_later": [],
+        "overdue": [],
+        "deadline_unknown": [],
+    }
+    reminder_candidates = []
+
+    for application, opportunity in rows:
+        entry = deadline_entry(application, opportunity, today, windows)
+        groups[entry["deadline_group"]].append(entry)
+        if entry["reminder_windows_due"]:
+            reminder_candidates.append(entry)
+
+    return {
+        "student_id": student_id,
+        "as_of": today,
+        "reminder_windows_days": windows,
+        "groups": groups,
+        "reminder_candidates": reminder_candidates,
+        "delivery": "in_app_only",
+    }
+
+
+@app.get(
+    "/api/dashboard/{student_id}",
+    summary="Get application tracker dashboard statistics",
+    description="Returns aggregate tracker and deadline counts for a student.",
+)
+def get_application_dashboard(
+    student_id: str = Path(min_length=1, max_length=50),
+    db: Session = Depends(get_db),
+):
+    rows = get_student_application_entries(student_id, db)
+    today = datetime.now(timezone.utc).date()
+    entries = [deadline_entry(application, opportunity, today, [7, 3, 1]) for application, opportunity in rows]
+    statuses = [(entry["status"] or "Interested").lower() for entry in entries]
+    upcoming = sum(
+        1 for entry in entries
+        if entry["actionable"] and entry["days_remaining"] is not None and 0 <= entry["days_remaining"] <= 7
+    )
+    return {
+        "student_id": student_id,
+        "total_tracked": len(entries),
+        "applications_submitted": sum(status in SUBMITTED_APPLICATION_STATUSES for status in statuses),
+        "shortlisted": sum(status == "shortlisted" for status in statuses),
+        "upcoming_deadlines": upcoming,
+        "overdue_deadlines": sum(entry["deadline_group"] == "overdue" for entry in entries),
+        "deadlines_unknown": sum(entry["deadline_group"] == "deadline_unknown" for entry in entries),
+    }
