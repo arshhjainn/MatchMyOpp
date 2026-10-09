@@ -1,0 +1,819 @@
+[
+  {
+    "id": "google-generation-scholars",
+    "title": "Generation Google Scholarship",
+    "organization": "Google",
+    "category": "Scholarship",
+    "amount": "$10,000",
+    "deadline": "2026-11-15",
+    "location": "United States \u00b7 Remote",
+    "format": "Remote",
+    "description": "A scholarship supporting students pursuing computer science and technology degrees who demonstrate leadership, academic strength, and a commitment to increasing access in tech.",
+    "eligibility": [
+      "Undergraduate student",
+      "Studying computer science or a related field",
+      "Enrolled at an accredited US university"
+    ],
+    "tags": [
+      "Computer Science",
+      "AI / ML",
+      "Engineering"
+    ],
+    "matchScore": 96,
+    "eligible": true,
+    "featured": "High match"
+  },
+  {
+    "id": "mitacs-globalink-research",
+    "title": "Globalink Research Internship",
+    "organization": "Mitacs",
+    "category": "Research",
+    "amount": "Fully funded",
+    "deadline": "2026-11-28",
+    "location": "Canada \u00b7 In person",
+    "format": "In person",
+    "description": "Complete a 12-week research internship with a Canadian faculty supervisor. Projects span computer science, engineering, life sciences, and social sciences.",
+    "eligibility": [
+      "Undergraduate student",
+      "At least one year of study completed",
+      "Available for a 12-week placement"
+    ],
+    "tags": [
+      "Computer Science",
+      "Engineering",
+      "Research"
+    ],
+    "matchScore": 92,
+    "eligible": true,
+    "featured": "Fully funded"
+  },
+  {
+    "id": "mlh-fellowship-spring",
+    "title": "MLH Fellowship \u00b7 Spring Cohort",
+    "organization": "Major League Hacking",
+    "category": "Internship",
+    "amount": "$5,000 stipend",
+    "deadline": "2026-12-04",
+    "location": "Remote \u00b7 12 weeks",
+    "format": "Remote",
+    "description": "A remote, project-based internship where student developers contribute to open-source software, collaborate with a small team, and learn from industry mentors.",
+    "eligibility": [
+      "Currently enrolled student or recent graduate",
+      "Comfortable programming in at least one language",
+      "Available 20 hours per week"
+    ],
+    "tags": [
+      "Computer Science",
+      "Engineering",
+      "Entrepreneurship"
+    ],
+    "matchScore": 89,
+    "eligible": true,
+    "featured": "Paid program"
+  },
+  {
+    "id": "hackmit-2027",
+    "title": "HackMIT 2027",
+    "organization": "HackMIT",
+    "category": "Hackathon",
+    "amount": "$25,000 in prizes",
+    "deadline": "2026-12-12",
+    "location": "Cambridge, MA \u00b7 In person",
+    "format": "In person",
+    "description": "Join student builders for a weekend of prototyping, workshops, and mentorship. All experience levels are welcome, with tracks in AI, climate, and community technology.",
+    "eligibility": [
+      "Enrolled high school or university student",
+      "At least 18 years old to attend independently"
+    ],
+    "tags": [
+      "Computer Science",
+      "AI / ML",
+      "Entrepreneurship"
+    ],
+    "matchScore": 87,
+    "eligible": true,
+    "featured": "Applications open"
+  },
+  {
+    "id": "nsf-grfp-2027",
+    "title": "NSF Graduate Research Fellowship",
+    "organization": "National Science Foundation",
+    "category": "Fellowship",
+    "amount": "$37,000 annual stipend",
+    "deadline": "2026-10-27",
+    "location": "United States \u00b7 Graduate study",
+    "format": "Fellowship",
+    "description": "Support for outstanding graduate students pursuing research-based master's and doctoral degrees in science, technology, engineering, and mathematics.",
+    "eligibility": [
+      "US citizen, national, or permanent resident",
+      "Beginning an eligible research-based graduate program",
+      "Field must be supported by the program"
+    ],
+    "tags": [
+      "Computer Science",
+      "Engineering",
+      "Mathematics",
+      "Research"
+    ],
+    "matchScore": 81,
+    "eligible": false,
+    "featured": "Deadline soon"
+  },
+  {
+    "id": "adobe-design-circle",
+    "title": "Adobe Design Circle Scholarship",
+    "organization": "Adobe",
+    "category": "Scholarship",
+    "amount": "$25,000",
+    "deadline": "2027-01-18",
+    "location": "United States \u00b7 Remote",
+    "format": "Remote",
+    "description": "Scholarships and mentorship for emerging creators who are pursuing design and digital arts degrees and using creativity to make a positive impact.",
+    "eligibility": [
+      "Pursuing a design or digital arts degree",
+      "Demonstrated financial need",
+      "Portfolio submission required"
+    ],
+    "tags": [
+      "Design",
+      "Arts"
+    ],
+    "matchScore": 63,
+    "eligible": false,
+    "featured": "Portfolio required"
+  },
+  {
+    "id": "amazon-future-engineer",
+    "title": "Amazon Future Engineer Scholarship",
+    "organization": "Amazon Future Engineer",
+    "category": "Scholarship",
+    "amount": "Up to $40,000",
+    "deadline": "2027-01-22",
+    "location": "United States \u00b7 Remote",
+    "format": "Remote",
+    "description": "Scholarships and a paid summer internship for students planning to study computer science who have demonstrated financial need and academic potential.",
+    "eligibility": [
+      "High school senior in the United States",
+      "Planning to study computer science",
+      "Demonstrated financial need"
+    ],
+    "tags": [
+      "Computer Science",
+      "Engineering"
+    ],
+    "matchScore": 72,
+    "eligible": false,
+    "featured": "Paid internship"
+  },
+  {
+    "id": "stanford-ai-hackathon",
+    "title": "Stanford AI for Good Hackathon",
+    "organization": "Stanford University",
+    "category": "Hackathon",
+    "amount": "$12,000 in prizes",
+    "deadline": "2027-02-02",
+    "location": "Palo Alto, CA \u00b7 Hybrid",
+    "format": "Hybrid",
+    "description": "Build practical AI tools for public-interest challenges with interdisciplinary student teams, technical workshops, and feedback from nonprofit partners.",
+    "eligibility": [
+      "University students from any discipline",
+      "Teams of two to five encouraged",
+      "Travel support available for selected participants"
+    ],
+    "tags": [
+      "AI / ML",
+      "Computer Science",
+      "Social Sciences"
+    ],
+    "matchScore": 90,
+    "eligible": true,
+    "featured": "Team applications"
+  },
+  {
+    "id": "unesco-youth-climate",
+    "title": "UNESCO Youth Climate Action Grant",
+    "organization": "UNESCO",
+    "category": "Grant",
+    "amount": "Up to $5,000",
+    "deadline": "2027-02-16",
+    "location": "Global \u00b7 Project based",
+    "format": "Remote",
+    "description": "Seed funding for youth-led projects that make local communities more resilient to climate change through education, technology, or conservation.",
+    "eligibility": [
+      "Aged 18\u201330",
+      "Youth-led project team",
+      "Project benefits a local community"
+    ],
+    "tags": [
+      "Sustainability",
+      "Entrepreneurship",
+      "Social Sciences"
+    ],
+    "matchScore": 76,
+    "eligible": true,
+    "featured": "Global applicants"
+  },
+  {
+    "id": "demo-young-innovators-challenge",
+    "title": "Young Innovators Challenge",
+    "organization": "FutureMakers Foundation",
+    "category": "STEM Competition",
+    "description": "Design a practical solution to a real-world problem using robotics, engineering, or technology. Finalist teams receive mentor support and present their prototypes at a student showcase.",
+    "required_skills": [
+      "Robotics",
+      "Engineering",
+      "Prototyping",
+      "Teamwork"
+    ],
+    "eligible_grades": [
+      "11th Grade",
+      "12th Grade",
+      "Undergraduate"
+    ],
+    "min_age": 16,
+    "max_age": 24,
+    "location": "United States \u00b7 Hybrid",
+    "deadline": "2026-11-20",
+    "reward": "$8,000 in prizes and mentorship",
+    "application_url": "",
+    "match_score": 89,
+    "match_reasons": [
+      "Matches your interest in technology and innovation.",
+      "Could help you build a project portfolio."
+    ],
+    "eligibility_status": "check",
+    "featured": "Strong match"
+  },
+  {
+    "id": "demo-green-campus-innovation-grant",
+    "title": "Green Campus Innovation Grant",
+    "organization": "EarthBridge Student Fund",
+    "category": "Grant",
+    "description": "Seed funding for student teams testing a measurable sustainability improvement on campus, from food-waste reduction to energy monitoring.",
+    "required_skills": [
+      "Sustainability",
+      "Research",
+      "Project Planning"
+    ],
+    "eligible_grades": [
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 18,
+    "max_age": 30,
+    "location": "United States \u00b7 Campus based",
+    "deadline": "2026-12-05",
+    "reward": "Up to $6,000 per team",
+    "application_url": "",
+    "match_score": 84,
+    "match_reasons": [
+      "Supports student-led sustainability projects.",
+      "Funds an applied project with community impact."
+    ],
+    "eligibility_status": "check",
+    "featured": "Project grant"
+  },
+  {
+    "id": "demo-future-coders-fellowship",
+    "title": "Future Coders Fellowship",
+    "organization": "CodeForward Network",
+    "category": "Fellowship",
+    "description": "A semester-long fellowship pairing student developers with mentors to build an open-source tool for education, accessibility, or public services.",
+    "required_skills": [
+      "Python",
+      "JavaScript",
+      "Git",
+      "Collaboration"
+    ],
+    "eligible_grades": [
+      "12th Grade",
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 17,
+    "max_age": 27,
+    "location": "Remote \u00b7 United States",
+    "deadline": "2026-12-12",
+    "reward": "$4,000 stipend and mentor support",
+    "application_url": "",
+    "match_score": 91,
+    "match_reasons": [
+      "Builds practical software experience.",
+      "Mentorship supports students entering technology careers."
+    ],
+    "eligibility_status": "check",
+    "featured": "Paid fellowship"
+  },
+  {
+    "id": "demo-community-health-research-award",
+    "title": "Community Health Research Award",
+    "organization": "WellSpring Research Collaborative",
+    "category": "Research",
+    "description": "Support for student research projects exploring local health access, prevention, or public-health communication in partnership with a community organization.",
+    "required_skills": [
+      "Research",
+      "Writing",
+      "Data Analysis",
+      "Public Health"
+    ],
+    "eligible_grades": [
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 18,
+    "max_age": 35,
+    "location": "United States \u00b7 Local fieldwork",
+    "deadline": "2027-01-09",
+    "reward": "$3,500 research award",
+    "application_url": "",
+    "match_score": 78,
+    "match_reasons": [
+      "Provides funding for applied student research.",
+      "Connects academic work to community needs."
+    ],
+    "eligibility_status": "check",
+    "featured": "Research funding"
+  },
+  {
+    "id": "demo-creative-futures-design-prize",
+    "title": "Creative Futures Design Prize",
+    "organization": "OpenCanvas Arts Trust",
+    "category": "Competition",
+    "description": "Submit a design concept that makes a public service easier to use. Selected students receive portfolio reviews and present their work to practicing designers.",
+    "required_skills": [
+      "Design",
+      "Prototyping",
+      "Visual Communication"
+    ],
+    "eligible_grades": [
+      "12th Grade",
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 17,
+    "max_age": 29,
+    "location": "Global \u00b7 Remote showcase",
+    "deadline": "2027-01-16",
+    "reward": "$5,000 in awards and portfolio mentorship",
+    "application_url": "",
+    "match_score": 80,
+    "match_reasons": [
+      "Recognizes creative problem solving.",
+      "Includes professional portfolio feedback."
+    ],
+    "eligibility_status": "check",
+    "featured": "Portfolio opportunity"
+  },
+  {
+    "id": "demo-open-source-summer-fellowship",
+    "title": "Open Source Summer Fellowship",
+    "organization": "Public Code Initiative",
+    "category": "Internship",
+    "description": "Contribute to a public-interest software project with guidance from maintainers. Fellows join weekly code reviews, planning sessions, and a final project demo.",
+    "required_skills": [
+      "Programming",
+      "Git",
+      "Communication"
+    ],
+    "eligible_grades": [
+      "Undergraduate",
+      "Graduate",
+      "Recent Graduate"
+    ],
+    "min_age": 18,
+    "max_age": 30,
+    "location": "Remote \u00b7 10 weeks",
+    "deadline": "2027-01-25",
+    "reward": "$6,500 stipend",
+    "application_url": "",
+    "match_score": 93,
+    "match_reasons": [
+      "Offers hands-on software experience.",
+      "Includes code review and mentorship from maintainers."
+    ],
+    "eligibility_status": "check",
+    "featured": "Paid internship"
+  },
+  {
+    "id": "demo-women-engineering-leadership-award",
+    "title": "Women in Engineering Leadership Award",
+    "organization": "NextGen Engineers Alliance",
+    "category": "Scholarship",
+    "description": "Scholarship and leadership development support for students advancing engineering projects, peer learning, or outreach in their communities.",
+    "required_skills": [
+      "Engineering",
+      "Leadership",
+      "Community Building"
+    ],
+    "eligible_grades": [
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 18,
+    "max_age": 32,
+    "location": "United States \u00b7 Remote",
+    "deadline": "2027-02-03",
+    "reward": "$7,500 scholarship",
+    "application_url": "",
+    "match_score": 82,
+    "match_reasons": [
+      "Supports engineering students and emerging leaders.",
+      "Includes a peer leadership network."
+    ],
+    "eligibility_status": "check",
+    "featured": "Scholarship"
+  },
+  {
+    "id": "demo-data-for-good-challenge",
+    "title": "Data for Good Challenge",
+    "organization": "Civic Data Lab",
+    "category": "Hackathon",
+    "description": "Work in a student team to turn an open civic dataset into a useful tool or clear public insight. Workshops cover responsible analysis and data storytelling.",
+    "required_skills": [
+      "Data Analysis",
+      "Python",
+      "Visualization",
+      "Teamwork"
+    ],
+    "eligible_grades": [
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 18,
+    "max_age": 30,
+    "location": "United States \u00b7 Hybrid",
+    "deadline": "2027-02-14",
+    "reward": "$10,000 in team awards",
+    "application_url": "",
+    "match_score": 88,
+    "match_reasons": [
+      "Combines data skills with public-interest work.",
+      "Offers workshops and team mentorship."
+    ],
+    "eligibility_status": "check",
+    "featured": "Team applications"
+  },
+  {
+    "id": "demo-youth-climate-action-fund",
+    "title": "Youth Climate Action Fund",
+    "organization": "Climate Neighbors Fund",
+    "category": "Grant",
+    "description": "Small grants for youth-led local projects that help communities prepare for heat, flooding, or other climate impacts.",
+    "required_skills": [
+      "Sustainability",
+      "Project Planning",
+      "Community Outreach"
+    ],
+    "eligible_grades": [
+      "12th Grade",
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 16,
+    "max_age": 30,
+    "location": "Global \u00b7 Community based",
+    "deadline": "2027-02-20",
+    "reward": "Up to $5,000 per project",
+    "application_url": "",
+    "match_score": 86,
+    "match_reasons": [
+      "Funds practical climate resilience work.",
+      "Welcomes youth-led community projects."
+    ],
+    "eligibility_status": "check",
+    "featured": "Global applicants"
+  },
+  {
+    "id": "demo-student-startup-launchpad",
+    "title": "Student Startup Launchpad",
+    "organization": "VentureSpring Campus Network",
+    "category": "Entrepreneurship",
+    "description": "A guided startup program for student teams validating an early idea. Participants get customer discovery coaching, founder workshops, and a final pitch opportunity.",
+    "required_skills": [
+      "Entrepreneurship",
+      "Communication",
+      "Business Planning"
+    ],
+    "eligible_grades": [
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 18,
+    "max_age": 30,
+    "location": "United States \u00b7 Hybrid",
+    "deadline": "2027-03-02",
+    "reward": "$15,000 in prototype awards",
+    "application_url": "",
+    "match_score": 77,
+    "match_reasons": [
+      "Helps student founders validate an idea.",
+      "Provides coaching and a pitch opportunity."
+    ],
+    "eligibility_status": "check",
+    "featured": "Founder program"
+  },
+  {
+    "id": "demo-undergraduate-research-conference",
+    "title": "Undergraduate Research Conference Fellowship",
+    "organization": "Northstar Scholars Forum",
+    "category": "Research",
+    "description": "Travel and presentation support for undergraduates sharing original research at a cross-disciplinary student conference.",
+    "required_skills": [
+      "Research",
+      "Writing",
+      "Presentation"
+    ],
+    "eligible_grades": [
+      "Undergraduate"
+    ],
+    "min_age": 18,
+    "max_age": 28,
+    "location": "Chicago, IL \u00b7 In person",
+    "deadline": "2027-03-10",
+    "reward": "Travel support and $1,500 award",
+    "application_url": "",
+    "match_score": 75,
+    "match_reasons": [
+      "Supports students sharing original research.",
+      "Provides travel support to attend a conference."
+    ],
+    "eligibility_status": "check",
+    "featured": "Travel support"
+  },
+  {
+    "id": "demo-cybersecurity-scholars-program",
+    "title": "Cybersecurity Scholars Program",
+    "organization": "SecurePath Education Fund",
+    "category": "Scholarship",
+    "description": "Scholarship and career mentoring for students building skills in secure software, digital privacy, and responsible cybersecurity.",
+    "required_skills": [
+      "Computer Science",
+      "Networking",
+      "Security",
+      "Problem Solving"
+    ],
+    "eligible_grades": [
+      "12th Grade",
+      "Undergraduate"
+    ],
+    "min_age": 17,
+    "max_age": 26,
+    "location": "United States \u00b7 Remote",
+    "deadline": "2027-03-18",
+    "reward": "$9,000 scholarship",
+    "application_url": "",
+    "match_score": 90,
+    "match_reasons": [
+      "Focused on computing and information security.",
+      "Pairs scholarship support with career mentoring."
+    ],
+    "eligibility_status": "check",
+    "featured": "Mentorship included"
+  },
+  {
+    "id": "demo-first-generation-success-scholarship",
+    "title": "First-Generation Student Success Scholarship",
+    "organization": "Open Doors Student Trust",
+    "category": "Scholarship",
+    "description": "Need-aware scholarship for first-generation college students who are contributing to their campus or community while pursuing a degree.",
+    "required_skills": [
+      "Leadership",
+      "Community Service",
+      "Communication"
+    ],
+    "eligible_grades": [
+      "Undergraduate"
+    ],
+    "min_age": 17,
+    "max_age": 30,
+    "location": "United States \u00b7 Remote",
+    "deadline": "2027-03-25",
+    "reward": "$5,000 scholarship",
+    "application_url": "",
+    "match_score": 70,
+    "match_reasons": [
+      "Designed for first-generation college students.",
+      "Recognizes community and campus contributions."
+    ],
+    "eligibility_status": "check",
+    "featured": "Student support"
+  },
+  {
+    "id": "demo-robotics-build-challenge",
+    "title": "Robotics Build Challenge",
+    "organization": "MakerWorks Student League",
+    "category": "STEM Competition",
+    "description": "Build and demonstrate a small robot that completes a community-focused task. Teams receive an online design review before the final showcase.",
+    "required_skills": [
+      "Robotics",
+      "Engineering",
+      "Coding",
+      "Prototyping"
+    ],
+    "eligible_grades": [
+      "9th Grade",
+      "10th Grade",
+      "11th Grade",
+      "12th Grade",
+      "Undergraduate"
+    ],
+    "min_age": 14,
+    "max_age": 24,
+    "location": "United States \u00b7 Regional events",
+    "deadline": "2027-04-01",
+    "reward": "$12,000 in prizes and equipment grants",
+    "application_url": "",
+    "match_score": 87,
+    "match_reasons": [
+      "Hands-on robotics challenge with a public showcase.",
+      "Offers feedback during the build process."
+    ],
+    "eligibility_status": "check",
+    "featured": "Build with a team"
+  },
+  {
+    "id": "demo-civic-tech-internship",
+    "title": "Civic Technology Internship Program",
+    "organization": "Public Good Digital Studio",
+    "category": "Internship",
+    "description": "Join a small team improving digital tools used by local nonprofits and public agencies. Interns contribute to research, design, and software delivery.",
+    "required_skills": [
+      "Programming",
+      "Design",
+      "Research",
+      "Communication"
+    ],
+    "eligible_grades": [
+      "Undergraduate",
+      "Graduate",
+      "Recent Graduate"
+    ],
+    "min_age": 18,
+    "max_age": 30,
+    "location": "Remote \u00b7 United States",
+    "deadline": "2027-04-08",
+    "reward": "$22 per hour for 12 weeks",
+    "application_url": "",
+    "match_score": 83,
+    "match_reasons": [
+      "Provides experience on real public-interest products.",
+      "Welcomes students from technical and design fields."
+    ],
+    "eligibility_status": "check",
+    "featured": "Paid internship"
+  },
+  {
+    "id": "demo-applied-math-modeling-challenge",
+    "title": "Applied Mathematics Modeling Challenge",
+    "organization": "Quantitative Futures Society",
+    "category": "Competition",
+    "description": "Student teams use mathematical modeling to analyze an open-ended problem in transportation, public health, or the environment, then present their approach.",
+    "required_skills": [
+      "Mathematics",
+      "Data Analysis",
+      "Writing",
+      "Teamwork"
+    ],
+    "eligible_grades": [
+      "11th Grade",
+      "12th Grade",
+      "Undergraduate"
+    ],
+    "min_age": 16,
+    "max_age": 25,
+    "location": "Global \u00b7 Remote",
+    "deadline": "2027-04-16",
+    "reward": "$7,500 in team awards",
+    "application_url": "",
+    "match_score": 79,
+    "match_reasons": [
+      "Applies quantitative skills to current problems.",
+      "Builds teamwork and technical communication."
+    ],
+    "eligibility_status": "check",
+    "featured": "Global teams"
+  },
+  {
+    "id": "demo-global-student-policy-fellowship",
+    "title": "Global Student Policy Fellowship",
+    "organization": "Civic Futures Institute",
+    "category": "Fellowship",
+    "description": "A mentored policy research program for students interested in education, technology, or climate policy. Fellows publish a short research brief with a partner organization.",
+    "required_skills": [
+      "Writing",
+      "Research",
+      "Critical Thinking",
+      "Social Sciences"
+    ],
+    "eligible_grades": [
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 18,
+    "max_age": 32,
+    "location": "Remote \u00b7 Global cohort",
+    "deadline": "2027-04-23",
+    "reward": "$3,000 stipend and publication mentorship",
+    "application_url": "",
+    "match_score": 74,
+    "match_reasons": [
+      "Connects student research with policy work.",
+      "Offers publication and mentor support."
+    ],
+    "eligibility_status": "check",
+    "featured": "Global cohort"
+  },
+  {
+    "id": "demo-digital-storytelling-for-change",
+    "title": "Digital Storytelling for Change",
+    "organization": "StoryLab Student Collective",
+    "category": "Competition",
+    "description": "Create a short digital story that raises awareness of a community issue. Selected creators receive production feedback and a chance to screen their work online.",
+    "required_skills": [
+      "Writing",
+      "Design",
+      "Video Editing",
+      "Communication"
+    ],
+    "eligible_grades": [
+      "9th Grade",
+      "10th Grade",
+      "11th Grade",
+      "12th Grade",
+      "Undergraduate"
+    ],
+    "min_age": 14,
+    "max_age": 25,
+    "location": "Global \u00b7 Remote",
+    "deadline": "2027-05-02",
+    "reward": "$4,000 in creator awards",
+    "application_url": "",
+    "match_score": 72,
+    "match_reasons": [
+      "Combines creativity and community impact.",
+      "Offers professional feedback on submitted work."
+    ],
+    "eligibility_status": "check",
+    "featured": "Creative opportunity"
+  },
+  {
+    "id": "demo-sustainable-cities-student-prize",
+    "title": "Sustainable Cities Student Prize",
+    "organization": "Urban Future Partnership",
+    "category": "Competition",
+    "description": "Propose a practical idea for making a neighborhood more accessible, resilient, or environmentally friendly. Interdisciplinary teams are encouraged.",
+    "required_skills": [
+      "Sustainability",
+      "Research",
+      "Design Thinking",
+      "Presentation"
+    ],
+    "eligible_grades": [
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 18,
+    "max_age": 30,
+    "location": "North America \u00b7 Hybrid showcase",
+    "deadline": "2027-05-10",
+    "reward": "$11,000 in awards and project coaching",
+    "application_url": "",
+    "match_score": 85,
+    "match_reasons": [
+      "Focuses on sustainable and inclusive communities.",
+      "Encourages interdisciplinary student teams."
+    ],
+    "eligibility_status": "check",
+    "featured": "Interdisciplinary teams"
+  },
+  {
+    "id": "demo-women-in-tech-entrepreneurship-fellowship",
+    "title": "Women in Tech Entrepreneurship Fellowship",
+    "organization": "LaunchHer Innovation Fund",
+    "category": "Fellowship",
+    "description": "A founder fellowship for women students exploring technology ventures, with customer research coaching, peer founders, and a small prototype budget.",
+    "required_skills": [
+      "Entrepreneurship",
+      "Technology",
+      "Communication",
+      "Leadership"
+    ],
+    "eligible_grades": [
+      "Undergraduate",
+      "Graduate"
+    ],
+    "min_age": 18,
+    "max_age": 32,
+    "location": "United States \u00b7 Hybrid",
+    "deadline": "2027-05-18",
+    "reward": "$8,000 prototype funding and founder mentorship",
+    "application_url": "",
+    "match_score": 81,
+    "match_reasons": [
+      "Supports student founders exploring technology ideas.",
+      "Provides prototype funding and coaching."
+    ],
+    "eligibility_status": "check",
+    "featured": "Founder mentorship"
+  }
+]
