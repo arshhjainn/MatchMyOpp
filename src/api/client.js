@@ -44,6 +44,8 @@ export function normalizeProfile(profile) {
     age: profile.age ?? '',
     grade: profile.grade ?? profile.year ?? profile.year_of_study ?? profile.year_grade ?? '',
     location: profile.location ?? '',
+    email: profile.email ?? '',
+    email_reminders_enabled: Boolean(profile.email_reminders_enabled),
     skills: asArray(profile.skills),
     interests: asArray(profile.interests),
   }
