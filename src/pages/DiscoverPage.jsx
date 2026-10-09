@@ -1,14 +1,10 @@
 import { useMemo, useRef, useState } from 'react'
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from 'framer-motion'
-import { CalendarDays, CheckCircle2, Heart, MapPin, Sparkles, X, ShieldCheck } from 'lucide-react'
+import { ArrowDownWideNarrow, CalendarDays, CheckCircle2, Clock3, Heart, MapPin, Sparkles, X } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import ProductHeader from '../components/ProductHeader'
-import { formatDeadline } from '../utils/dates'
+import { daysUntil, formatDeadline } from '../utils/dates'
 import { useOpportunities } from '../hooks/useOpportunities'
-import { EligibilityBadge, MatchBreakdownModal, MatchScoreBadge, DeadlineBadge } from '../components/OpportunityInsights'
-import { deadlineGroup } from '../utils/deadlineRadar'
-import { scoreOpportunity, evaluateEligibility } from '../utils/opportunityInsights'
-import UpcomingDeadlinesWidget from '../components/UpcomingDeadlinesWidget'
 
 const coverImages = {
   'google-generation-scholars': 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1400&q=85',
@@ -22,17 +18,19 @@ const coverImages = {
   'unesco-youth-climate': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1400&q=85',
 }
 
-function SwipeCard({ opportunity, profile, onLike, onPass }) {
+function SwipeCard({ opportunity, onLike, onPass }) {
   const x = useMotionValue(0)
   const rotate = useTransform(x, [-240, 240], [-8, 8])
   const passOpacity = useTransform(x, [-140, -35], [1, 0])
   const likeOpacity = useTransform(x, [35, 140], [0, 1])
   const pointer = useRef(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [showBreakdown, setShowBreakdown] = useState(false)
-  const match = scoreOpportunity(opportunity, profile)
-  const eligibility = evaluateEligibility(opportunity, profile)
-  const matchReasons = match.reasons
+  const days = daysUntil(opportunity.deadline)
+  const matchReasons = opportunity.matchReasons?.length ? opportunity.matchReasons : [
+    `Matches your interest in ${opportunity.tags[0]}.`,
+    `Could help you build experience in ${opportunity.tags[1] ?? opportunity.category.toLowerCase()}.`,
+  ]
+  const eligibilityStatus = opportunity.eligibilityStatus ?? (opportunity.eligible ? 'eligible' : 'check')
 
   const startSwipe = event => {
     if (event.pointerType === 'mouse' && event.button !== 0) return
@@ -123,11 +121,11 @@ function SwipeCard({ opportunity, profile, onLike, onPass }) {
               <Link to={`/opportunities/${opportunity.id}`} onPointerDown={event => event.stopPropagation()} className="hover:text-[#E8192C]">{opportunity.title}</Link>
             </h2>
           </div>
-          <div className="flex flex-wrap gap-2"><MatchScoreBadge opportunity={opportunity} profile={profile} /><EligibilityBadge opportunity={opportunity} profile={profile} compact /></div>
+          <div className={`rounded-full px-3 py-1.5 text-xs font-bold ${opportunity.matchScore >= 80 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{opportunity.matchScore >= 80 ? 'Strong match' : 'Potential match'}</div>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-4 rounded-2xl bg-[#fbfaf9] p-4 sm:p-5">
-          <div><p className="text-xs font-medium text-gray-500">Demo match compatibility</p><p className="mt-1 text-3xl font-black text-gray-900">{match.score}%</p></div>
+          <div><p className="text-xs font-medium text-gray-500">AI match score</p><p className="mt-1 text-3xl font-black text-gray-900">{opportunity.matchScore}%</p></div>
           <div><p className="text-xs font-medium text-gray-500">Reward</p><p className="mt-2 text-base font-bold text-gray-900 sm:text-lg">{opportunity.amount}</p></div>
         </div>
 
@@ -140,14 +138,16 @@ function SwipeCard({ opportunity, profile, onLike, onPass }) {
           <h3 className="text-base font-bold text-gray-900">Why this matches you</h3>
           <ul className="mt-3 space-y-2.5">
             {matchReasons.map(reason => <li key={reason} className="flex items-start gap-2.5 text-sm text-gray-600"><CheckCircle2 size={17} className="mt-0.5 shrink-0 text-emerald-600" />{reason}</li>)}
-            <li className="flex items-start gap-2.5 text-sm text-gray-600"><ShieldCheck size={17} className="mt-0.5 shrink-0 text-amber-600" />Preliminary eligibility: {eligibility.status === 'possibly-eligible' ? 'some information is missing or unverified.' : eligibility.status === 'eligible' ? 'listed structured criteria appear satisfied.' : 'a structured requirement appears unmet.'}</li>
+            <li className={`flex items-start gap-2.5 text-sm ${eligibilityStatus === 'eligible' ? 'text-gray-600' : 'text-amber-700'}`}>
+              {eligibilityStatus === 'eligible' ? <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-emerald-600" /> : <Clock3 size={17} className="mt-0.5 shrink-0 text-amber-600" />}
+              {eligibilityStatus === 'eligible' ? 'You appear to meet the listed eligibility requirements.' : eligibilityStatus === 'not-eligible' ? 'Your study level may not meet a listed requirement.' : 'Review age, grade, location, and program requirements.'}
+            </li>
           </ul>
         </section>
 
         <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-gray-100 pt-4 text-xs font-medium text-gray-500">
           <span className="inline-flex items-center gap-1.5"><MapPin size={14} />{opportunity.location}</span>
-          <span className="inline-flex items-center gap-1.5"><CalendarDays size={14} />Deadline {formatDeadline(opportunity.deadline)}</span><DeadlineBadge deadline={opportunity.deadline} />
-          <button type="button" onPointerDown={event => event.stopPropagation()} onClick={() => setShowBreakdown(true)} className="inline-flex items-center gap-1 font-bold text-[#E8192C] hover:text-[#C8111E]"><Sparkles size={14} />View Match Breakdown</button>
+          <span className="inline-flex items-center gap-1.5"><CalendarDays size={14} />Deadline {formatDeadline(opportunity.deadline)}{days > 0 && ` · ${days} days left`}</span>
           <Link to={`/opportunities/${opportunity.id}`} onPointerDown={event => event.stopPropagation()} className="ml-auto font-bold text-[#E8192C] hover:text-[#C8111E]">More details</Link>
         </div>
         <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-5">
@@ -156,7 +156,6 @@ function SwipeCard({ opportunity, profile, onLike, onPass }) {
           <button type="button" onPointerDown={event => event.stopPropagation()} onClick={onLike} className="inline-flex items-center gap-2 rounded-full bg-[#E8192C] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#C8111E]"><Heart size={17} />Like</button>
         </div>
       </div>
-      {showBreakdown && <MatchBreakdownModal opportunity={opportunity} profile={profile} onClose={() => setShowBreakdown(false)} />}
     </motion.article>
   )
 }
@@ -166,15 +165,11 @@ export default function DiscoverPage() {
   const [searchParams] = useSearchParams()
   const [category, setCategory] = useState(() => searchParams.get('category') || 'All')
   const [sort, setSort] = useState('match')
-  const [eligibilityFilter, setEligibilityFilter] = useState('all')
-  const [deadlineScope, setDeadlineScope] = useState('active')
   const categories = useMemo(() => ['All', ...new Set(opportunities.map(item => item.category).filter(Boolean))], [opportunities])
   const visible = useMemo(() => opportunities
     .filter(item => category === 'All' || item.category === category)
-    .filter(item => deadlineScope === 'all' || (deadlineScope === 'expired' ? deadlineGroup(item.deadline) === 'closed' : deadlineGroup(item.deadline) !== 'closed'))
-    .filter(item => eligibilityFilter === 'all' || evaluateEligibility(item, profile).status === eligibilityFilter)
-    .sort((a, b) => sort === 'deadline' ? (a.deadline || '9999').localeCompare(b.deadline || '9999') : scoreOpportunity(b, profile).score - scoreOpportunity(a, profile).score),
-  [opportunities, category, sort, eligibilityFilter, deadlineScope, profile])
+    .sort((a, b) => sort === 'deadline' ? a.deadline.localeCompare(b.deadline) : b.matchScore - a.matchScore),
+  [opportunities, category, sort])
   const current = visible[0]
 
   return <div className="min-h-screen bg-white text-gray-900">
@@ -185,36 +180,29 @@ export default function DiscoverPage() {
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#E8192C]"><Sparkles size={15} /> Matched for you</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">Discover</h1>
         </div>
+        <label className="flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-sm text-gray-600">
+          <ArrowDownWideNarrow size={15} />
+          <span className="sr-only">Sort by</span>
+          <select value={sort} onChange={event => setSort(event.target.value)} className="max-w-28 bg-transparent font-semibold text-gray-700 outline-none">
+            <option value="match">Best match</option><option value="deadline">Deadline</option>
+          </select>
+        </label>
       </div>
 
       <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
         {categories.map(item => <button key={item} onClick={() => setCategory(item)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${category === item ? 'bg-[#E8192C] text-white' : 'border border-gray-200 bg-white text-gray-600 hover:border-[#E8192C]/50 hover:text-[#E8192C]'}`}>{item}</button>)}
       </div>
 
-      <div className="mb-5 grid gap-2 sm:grid-cols-3">
-        <label className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-500">Eligibility
-          <select aria-label="Filter by eligibility" value={eligibilityFilter} onChange={event => setEligibilityFilter(event.target.value)} className="ml-2 max-w-[70%] bg-transparent text-sm font-semibold text-gray-800 outline-none"><option value="all">All statuses</option><option value="eligible">Eligible</option><option value="possibly-eligible">Possibly eligible</option><option value="not-eligible">Not eligible</option></select>
-        </label>
-        <label className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-500">Deadlines
-          <select aria-label="Filter active and expired opportunities" value={deadlineScope} onChange={event => setDeadlineScope(event.target.value)} className="ml-2 max-w-[70%] bg-transparent text-sm font-semibold text-gray-800 outline-none"><option value="active">Active only</option><option value="expired">Closed / expired</option><option value="all">All deadlines</option></select>
-        </label>
-        <label className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-500">Sort by
-          <select aria-label="Sort opportunities" value={sort} onChange={event => setSort(event.target.value)} className="ml-2 max-w-[70%] bg-transparent text-sm font-semibold text-gray-800 outline-none"><option value="match">Highest match</option><option value="deadline">Earliest deadline</option></select>
-        </label>
-      </div>
-
       {!profile && <div className="mb-5 rounded-2xl border border-red-100 bg-red-50/70 px-4 py-3 text-sm text-gray-700">
         <Link to="/onboarding" className="font-bold text-[#E8192C] hover:text-[#C8111E]">Complete your profile</Link> to personalize match scores and eligibility.
       </div>}
-
-      <UpcomingDeadlinesWidget />
 
       {apiStatus === 'offline' && <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">The backend is unavailable. This feed requires a connection to the MatchMyOpp API.</div>}
 
       {error && <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-[#C8111E]"><span>{error}</span><button onClick={loadOpportunities} className="font-bold underline">Retry</button></div>}
       <p className="mb-3 text-xs font-medium text-gray-400">{loading ? 'Loading opportunities…' : `${visible.length} opportunities in your feed`}</p>
       <AnimatePresence mode="wait">
-        {current ? <SwipeCard key={current.id} opportunity={current} profile={profile} onLike={() => like(current.id)} onPass={() => pass(current.id)} /> : (
+        {current ? <SwipeCard key={current.id} opportunity={current} onLike={() => like(current.id)} onPass={() => pass(current.id)} /> : (
           <motion.div key="done" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-3xl border border-gray-100 bg-[#fbfaf9] px-6 py-16 text-center">
             <h2 className="text-2xl font-black text-gray-900">{loading ? 'Finding your matches…' : 'No opportunities in this feed yet'}</h2>
             <p className="mt-2 text-sm text-gray-500">{profile ? 'Check back later for new opportunities.' : 'Create or retrieve your student profile to load eligible matches.'}</p>

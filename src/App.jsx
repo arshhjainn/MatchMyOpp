@@ -6,8 +6,6 @@ import SavedPage from './pages/SavedPage'
 import OpportunityDetailPage from './pages/OpportunityDetailPage'
 import ApplicationsPage from './pages/ApplicationsPage'
 import CreateOpportunityPage from './pages/CreateOpportunityPage'
-import DeadlineRadarPage from './pages/DeadlineRadarPage'
-import OpportunityPDFScannerPage from './pages/OpportunityPDFScannerPage'
 import { OpportunityProvider } from './context/OpportunityProvider'
 import { LanguageProvider } from './context/LanguageContext'
 
@@ -23,8 +21,6 @@ export default function App() {
           <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/saved" element={<SavedPage />} />
           <Route path="/applications" element={<ApplicationsPage />} />
-          <Route path="/deadlines" element={<DeadlineRadarPage />} />
-          <Route path="/import-pdf" element={<OpportunityPDFScannerPage />} />
           <Route path="/opportunities/:id" element={<OpportunityDetailPage />} />
           <Route path="/opportunities/new" element={<CreateOpportunityPage />} />
           </Routes>
