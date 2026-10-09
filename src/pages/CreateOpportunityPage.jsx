@@ -24,7 +24,7 @@ export default function CreateOpportunityPage() {
         title: form.title.trim(),
         category: form.category.trim(),
         description: form.description.trim(),
-        required_skills: form.requiredSkills.split(',').map(item => item.trim()).filter(Boolean),
+        skills: form.requiredSkills.split(',').map(item => item.trim()).filter(Boolean),
         eligible_grades: form.eligibleGrades.split(',').map(item => item.trim()).filter(Boolean),
         min_age: form.minAge ? Number(form.minAge) : null,
         max_age: form.maxAge ? Number(form.maxAge) : null,
@@ -65,7 +65,7 @@ export default function CreateOpportunityPage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm font-semibold text-gray-700">Location<input required className={inputClass} value={form.location} onChange={set('location')} placeholder="Remote or city, country" /></label>
-          <label className="text-sm font-semibold text-gray-700">Deadline<input type="date" className={inputClass} value={form.deadline} onChange={set('deadline')} /></label>
+          <label className="text-sm font-semibold text-gray-700">Deadline<input required type="date" className={inputClass} value={form.deadline} onChange={set('deadline')} /></label>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm font-semibold text-gray-700">Reward<input className={inputClass} value={form.reward} onChange={set('reward')} placeholder="$5,000 and mentorship" /></label>

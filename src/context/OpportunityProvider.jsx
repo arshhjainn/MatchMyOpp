@@ -203,7 +203,15 @@ export function OpportunityProvider({ children }) {
   const addApplication = async (opportunityId, notes = '') => {
     try {
       if (!studentId) throw new Error('Create or retrieve your student profile before tracking applications.')
-      const application = await api.addApplication(studentId, opportunityId, notes)
+      const created = await api.addApplication(studentId, opportunityId, notes)
+      const opportunity = [...opportunities, ...saved].find(item => String(item.id) === String(opportunityId))
+      const application = normalizeApplication({
+        ...created,
+        opportunity_id: opportunityId,
+        opportunity_title: created.opportunityTitle !== 'Opportunity' ? created.opportunityTitle : opportunity?.title,
+        deadline: created.deadline ?? opportunity?.deadline,
+        application_url: created.applicationUrl ?? opportunity?.applicationUrl,
+      })
       setApplications(items => [application, ...items.filter(item => item.id !== application.id)])
       setApiStatus('online')
       setError('')

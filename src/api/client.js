@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '')
 
 async function request(path, options = {}) {
   let response
@@ -82,7 +82,7 @@ export function normalizeApplication(item) {
     ...item,
     id: item.application_id ?? item.id,
     opportunityId: item.opportunity_id ?? item.opportunityId ?? opportunity.opportunity_id ?? opportunity.id,
-    opportunityTitle: item.opportunity_title ?? item.opportunityTitle ?? opportunity.title ?? 'Opportunity',
+    opportunityTitle: item.opportunity_title ?? item.opportunityTitle ?? item.title ?? opportunity.title ?? 'Opportunity',
     status: item.status ?? 'Interested',
     notes: item.notes ?? '',
     deadline: item.deadline ?? opportunity.deadline ?? null,
@@ -113,12 +113,24 @@ export const api = {
   }),
   getSaved: async studentId => unwrapList(await request(`/api/saved/${encodeURIComponent(studentId)}`), ['opportunities', 'saved', 'saved_opportunities', 'items']).map(item => normalizeOpportunity(item.opportunity ?? item)),
   getApplications: async studentId => unwrapList(await request(`/api/applications/${encodeURIComponent(studentId)}`), ['applications', 'items']).map(normalizeApplication),
-  addApplication: async (studentId, opportunityId, notes = '') => normalizeApplication(await request('/api/applications', {
-    method: 'POST',
-    body: JSON.stringify({ student_id: studentId, opportunity_id: opportunityId, status: 'Interested', notes }),
-  })),
-  updateApplication: async (applicationId, changes) => normalizeApplication(await request(`/api/applications/${encodeURIComponent(applicationId)}`, {
-    method: 'PATCH',
-    body: JSON.stringify(changes),
-  })),
+  addApplication: async (studentId, opportunityId, notes = '') => {
+    const payload = await request('/api/applications', {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId, opportunity_id: opportunityId, status: 'Interested', notes }),
+    })
+    return normalizeApplication({
+      ...payload,
+      application_id: payload?.application_id ?? payload?.id,
+      opportunity_id: payload?.opportunity_id ?? opportunityId,
+      status: payload?.status ?? 'Interested',
+      notes: payload?.notes ?? notes,
+    })
+  },
+  updateApplication: async (applicationId, changes) => {
+    const payload = await request(`/api/applications/${encodeURIComponent(applicationId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(changes),
+    })
+    return normalizeApplication({ ...payload, ...changes, application_id: payload?.application_id ?? applicationId })
+  },
 }
