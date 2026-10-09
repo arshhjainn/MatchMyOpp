@@ -10,7 +10,7 @@ export default function LanguageSwitcher({ className = '' }) {
       aria-label={t('Language')}
       value={language}
       onChange={event => setLanguage(event.target.value)}
-      className="max-w-24 cursor-pointer appearance-none bg-transparent text-sm font-medium outline-none"
+      className="max-w-16 cursor-pointer appearance-none bg-transparent text-xs font-medium outline-none sm:max-w-24 sm:text-sm"
     >
       <option value="en">English</option>
       <option value="hi">हिन्दी</option>
