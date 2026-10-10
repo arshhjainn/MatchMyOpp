@@ -43,11 +43,14 @@ The frontend is configured to use `https://matchmyopp-1.onrender.com` by default
 
 ## Application tracker and deadline APIs
 
-The deployed application runs an idempotent startup migration after `create_all()`:
+The deployed application runs idempotent startup migrations after `create_all()`:
 
 - Adds nullable `created_at DATETIME`, `updated_at DATETIME`, and `submitted_at DATE` columns to an existing `applications` table when missing.
+- Adds a unique student/opportunity constraint to prevent duplicate tracker entries when the existing table has no duplicate pairs.
 - Does not drop tables, rewrite existing values, or infer dates for older rows.
 - Existing application rows remain valid; their timestamps remain `NULL` until new edits provide an update timestamp.
+
+If legacy duplicate student/opportunity pairs already exist, startup preserves them and skips adding the unique constraint rather than deleting data or failing deployment. The API still rejects ordinary duplicate creates with HTTP 409. Review and resolve any legacy duplicates intentionally before adding the constraint manually if database-level concurrency protection is required.
 
 Application status values are `Interested`, `Preparing`, `Applied`, `Shortlisted`, `Interview`, `Selected`, `Rejected`, and `Withdrawn`. The legacy value `Accepted` remains readable/updatable for existing records. New unsupported status values return HTTP 422. Moving an application to `Applied` sets `submitted_at` once; later status changes do not overwrite it.
 

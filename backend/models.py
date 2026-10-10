@@ -86,3 +86,11 @@ class Application(Base):
     created_at = Column(DateTime, nullable=True)
     updated_at = Column(DateTime, nullable=True)
     submitted_at = Column(Date, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "student_id",
+            "opportunity_id",
+            name="uq_student_opportunity_application",
+        ),
+    )
