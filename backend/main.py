@@ -250,22 +250,28 @@ def get_opportunities(
             ]
 
             if eligible_grades and student.grade.lower() not in eligible_grades:
-                continue
+                score = max(0, score - 15)
+                reasons.append("Grade requirement may not match your current level — check eligibility")
 
             if opportunity.min_age is not None:
                 if student.age is None or student.age < opportunity.min_age:
-                    continue
+                    score = max(0, score - 10)
+                    reasons.append("Check the minimum age requirement before applying")
 
             if opportunity.max_age is not None:
                 if student.age is None or student.age > opportunity.max_age:
-                    continue
+                    score = max(0, score - 10)
+                    reasons.append("Check the maximum age requirement before applying")
 
             if (
                 opportunity.location.lower() != "online"
+                and opportunity.location.lower() != "remote"
                 and opportunity.location.lower() != "anywhere"
-                and student.location.lower() != opportunity.location.lower()
+                and student.location.lower() not in opportunity.location.lower()
+                and opportunity.location.lower() not in student.location.lower()
             ):
-                continue
+                score = max(0, score - 10)
+                reasons.append("Location may differ — check if remote participation is allowed")
 
         results.append({
             "id": opportunity.id,
