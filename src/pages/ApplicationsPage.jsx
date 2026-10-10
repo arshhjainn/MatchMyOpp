@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArrowUpRight, CalendarDays, Check, Clock3, ExternalLink, FileCheck2, LoaderCircle, RefreshCw, Save } from 'lucide-react'
+import { ArrowUpRight, CalendarDays, Check, Clock3, ExternalLink, FileCheck2, LoaderCircle, Plus, RefreshCw, Save } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import ProductHeader from '../components/ProductHeader'
 import { formatDeadline } from '../utils/dates'
@@ -94,6 +94,29 @@ function SummaryCard({ label, value, detail, icon: Icon }) {
   </article>
 }
 
+function SavedOpportunityCard({ opportunity, addApplication }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  const track = async () => {
+    setBusy(true)
+    setError('')
+    const application = await addApplication(opportunity.id)
+    setBusy(false)
+    if (!application) setError('Could not add this opportunity. Please try again.')
+  }
+
+  return <article className="flex flex-col justify-between gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_6px_24px_rgba(17,24,39,0.04)] sm:flex-row sm:items-center">
+    <div className="min-w-0">
+      <p className="text-xs font-bold uppercase tracking-wider text-[#E8192C]">{opportunity.category}</p>
+      <h3 className="mt-1 text-base font-extrabold text-gray-950"><Link to={`/opportunities/${opportunity.id}`} className="hover:text-[#E8192C]">{opportunity.title}</Link></h3>
+      <p className="mt-1 text-sm text-gray-500">{opportunity.organization || opportunity.location || 'Opportunity saved for later'}</p>
+      {error && <p role="alert" className="mt-2 text-xs text-red-700">{error}</p>}
+    </div>
+    <button onClick={track} disabled={busy} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#E8192C] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#C8111E] disabled:opacity-60">{busy ? <LoaderCircle size={15} className="animate-spin" /> : <Plus size={15} />}Track application</button>
+  </article>
+}
+
 function EmptyState({ filtered, onReset }) {
   return <div className="rounded-3xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center">
     <FileCheck2 className="mx-auto text-gray-300" size={30} />
@@ -104,7 +127,7 @@ function EmptyState({ filtered, onReset }) {
 }
 
 export default function ApplicationsPage() {
-  const { profile, applications, applicationsLoading, applicationDashboard, deadlineFeed, error, loadApplications, updateApplication } = useOpportunities()
+  const { profile, saved, applications, applicationsLoading, applicationDashboard, deadlineFeed, error, loadApplications, addApplication, updateApplication } = useOpportunities()
   const [view, setView] = useState('applications')
   const [statusFilter, setStatusFilter] = useState('all')
   const [deadlineFilter, setDeadlineFilter] = useState('all')
@@ -117,6 +140,8 @@ export default function ApplicationsPage() {
   const submitted = applicationDashboard?.applications_submitted ?? applications.filter(item => ['Applied', 'Shortlisted', 'Interview', 'Selected', 'Rejected', 'Accepted'].includes(item.status)).length
   const shortlisted = applicationDashboard?.shortlisted ?? applications.filter(item => item.status === 'Shortlisted').length
   const availableStatuses = [...new Set([...statuses, ...applications.map(item => item.status).filter(Boolean)])]
+  const trackedOpportunityIds = new Set(applications.map(item => String(item.opportunityId)))
+  const savedToTrack = saved.filter(item => !trackedOpportunityIds.has(String(item.id)))
   const upcoming = applications.filter(item => {
     const group = item.deadlineGroup ?? getDeadlineGroup(item.deadline)
     return ['today', 'three-days', 'seven-days'].includes(group)
@@ -147,6 +172,11 @@ export default function ApplicationsPage() {
             <div><p className="text-sm font-bold text-gray-900">Deadline reminders</p><p className="mt-1 text-sm text-gray-600">In-app deadline overview based on the dates and status in your tracker.</p></div>
             <p className="mt-3 text-xs font-medium text-gray-500 sm:mt-0">{deadlineFeed?.reminder_windows_days?.join(' · ') ?? '7 · 3 · 1'} day reminder windows. Email notifications are off.</p>
           </section>
+
+          {savedToTrack.length > 0 && <section aria-label="Saved opportunities to track" className="mt-7">
+            <div className="mb-3"><h2 className="text-lg font-extrabold text-gray-950">Saved opportunities</h2><p className="mt-1 text-sm text-gray-500">Add a saved opportunity to your tracker when you’re ready to apply.</p></div>
+            <div className="space-y-3">{savedToTrack.map(item => <SavedOpportunityCard key={item.id} opportunity={item} addApplication={addApplication} />)}</div>
+          </section>}
 
           <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
             <div role="tablist" aria-label="Application views" className="inline-flex rounded-full border border-gray-200 bg-white p-1">
