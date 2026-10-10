@@ -6,6 +6,32 @@ import { normalizeDeadlineGroup } from '../utils/applicationDeadlines'
 const PROFILE_STORAGE_KEY = 'matchmyopp-student-profile'
 const isConnectionError = cause => cause.message.startsWith('Cannot connect to the backend')
 
+function calculateMatchScore(opportunity, profile) {
+  const studentSkills = new Set((profile.skills ?? []).map(skill => skill.toLowerCase()))
+  const studentInterests = new Set((profile.interests ?? []).map(interest => interest.toLowerCase()))
+  const opportunitySkills = (opportunity.requiredSkills ?? opportunity.tags ?? []).map(skill => skill.toLowerCase())
+  const matchedSkills = opportunitySkills.filter(skill => studentSkills.has(skill))
+  let score = opportunitySkills.length
+    ? Math.round(60 * new Set(matchedSkills).size / new Set(opportunitySkills).size)
+    : 0
+
+  if (studentInterests.has((opportunity.category ?? '').toLowerCase())) score += 25
+
+  const eligibleGrades = (opportunity.eligibleGrades ?? []).map(grade => grade.toLowerCase())
+  if (eligibleGrades.length && !eligibleGrades.includes((profile.grade ?? '').toLowerCase())) score = Math.max(0, score - 15)
+  if (opportunity.minAge != null && (profile.age == null || profile.age < opportunity.minAge)) score = Math.max(0, score - 10)
+  if (opportunity.maxAge != null && (profile.age == null || profile.age > opportunity.maxAge)) score = Math.max(0, score - 10)
+
+  const opportunityLocation = (opportunity.location ?? '').toLowerCase()
+  const studentLocation = (profile.location ?? '').toLowerCase()
+  const remote = ['online', 'remote', 'anywhere'].some(value => opportunityLocation.includes(value))
+  if (!remote && !studentLocation.includes(opportunityLocation) && !opportunityLocation.includes(studentLocation)) {
+    score = Math.max(0, score - 10)
+  }
+
+  return score
+}
+
 function readProfile() {
   try {
     const profile = normalizeProfile(JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY)))
@@ -27,6 +53,7 @@ export function OpportunityProvider({ children }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const opportunityDetails = useRef(new Map())
+  const opportunityScores = useRef(new Map())
   const studentId = profile?.student_id
 
   useEffect(() => {
@@ -39,6 +66,7 @@ export function OpportunityProvider({ children }) {
     setError('')
     try {
       const items = await api.getOpportunities(studentId)
+      items.forEach(item => opportunityScores.current.set(String(item.id), item.matchScore))
       setOpportunities(items)
       setApiStatus('online')
       return items
@@ -55,7 +83,22 @@ export function OpportunityProvider({ children }) {
   const loadSaved = useCallback(async () => {
     if (!studentId) return []
     try {
-      const items = await api.getSaved(studentId)
+      const savedItems = await api.getSaved(studentId)
+      const items = await Promise.all(savedItems.map(async savedItem => {
+        // The saved endpoint returns a summary without skills or a match score.
+        // Fetch the full opportunity so saved cards can show the same profile match.
+        try {
+          const detail = await api.getOpportunity(savedItem.id)
+          const knownScore = opportunityScores.current.get(String(savedItem.id))
+          return {
+            ...savedItem,
+            ...detail,
+            matchScore: knownScore ?? (detail.matchScore || calculateMatchScore(detail, profile)),
+          }
+        } catch {
+          return { ...savedItem, matchScore: savedItem.matchScore ?? 0 }
+        }
+      }))
       setSaved(items)
       setApiStatus('online')
       return items
@@ -65,7 +108,7 @@ export function OpportunityProvider({ children }) {
       setSaved([])
       return []
     }
-  }, [studentId])
+  }, [studentId, profile])
 
   const loadApplications = useCallback(async () => {
     if (!studentId) {
@@ -205,6 +248,10 @@ export function OpportunityProvider({ children }) {
       return false
     }
     try {
+      const opportunity = opportunities.find(item => String(item.id) === String(opportunityId))
+      if (opportunity && opportunity.matchScore != null) {
+        opportunityScores.current.set(String(opportunityId), opportunity.matchScore)
+      }
       await api.saveSwipe(studentId, opportunityId, action)
       setApiStatus('online')
       setOpportunities(items => items.filter(item => item.id !== opportunityId))
