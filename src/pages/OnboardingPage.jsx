@@ -24,8 +24,6 @@ export default function OnboardingPage() {
   const [form, setForm] = useState(() => ({
     student_id: profile?.student_id ?? '',
     name: profile?.name ?? '',
-    email: profile?.email ?? '',
-    email_reminders_enabled: profile?.email_reminders_enabled ?? false,
     age: profile?.age ?? '',
     grade: profile?.grade ?? '',
     location: profile?.location ?? '',
@@ -56,8 +54,6 @@ export default function OnboardingPage() {
       setForm({
         student_id: loaded.student_id ?? '',
         name: loaded.name ?? '',
-        email: loaded.email ?? '',
-        email_reminders_enabled: loaded.email_reminders_enabled ?? false,
         age: loaded.age ?? '',
         grade: loaded.grade ?? '',
         location: loaded.location ?? '',
@@ -81,8 +77,6 @@ export default function OnboardingPage() {
     const studentProfile = {
       student_id: form.student_id.trim(),
       name: form.name.trim(),
-      email: form.email.trim(),
-      email_reminders_enabled: form.email_reminders_enabled,
       age: Number(form.age),
       year: grade,
       grade,
@@ -125,13 +119,6 @@ export default function OnboardingPage() {
             </label>
             <label className="text-sm font-semibold text-gray-700">Full name
               <input className={`${inputClass} mt-1.5`} required value={form.name} onChange={updateField('name')} placeholder="Your name" autoComplete="name" />
-            </label>
-            <label className="text-sm font-semibold text-gray-700 sm:col-span-2">Email address
-              <input className={`${inputClass} mt-1.5`} type="email" maxLength={254} required={form.email_reminders_enabled} value={form.email} onChange={updateField('email')} placeholder="you@example.com" autoComplete="email" aria-describedby="email-reminder-help" />
-            </label>
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700 sm:col-span-2">
-              <input className="mt-0.5 size-4 accent-[#E8192C]" type="checkbox" checked={form.email_reminders_enabled} onChange={event => { clearError(); setMessage(''); setForm(current => ({ ...current, email_reminders_enabled: event.target.checked })) }} />
-              <span><span className="font-semibold text-gray-900">Email me about upcoming deadlines</span><span id="email-reminder-help" className="mt-1 block text-xs leading-5 text-gray-500">We’ll send reminders 7, 3, and 1 day before deadlines for opportunities you’re tracking. You can turn this off by updating your profile.</span></span>
             </label>
             <label className="text-sm font-semibold text-gray-700">Age
               <input className={`${inputClass} mt-1.5`} required type="number" min="13" max="100" value={form.age} onChange={updateField('age')} placeholder="20" />
