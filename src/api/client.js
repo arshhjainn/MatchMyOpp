@@ -88,6 +88,9 @@ export function normalizeApplication(item) {
     status: item.status ?? 'Interested',
     notes: item.notes ?? '',
     deadline: item.deadline ?? opportunity.deadline ?? null,
+    organization: item.organization ?? item.organizer ?? opportunity.organization ?? opportunity.organizer ?? '',
+    createdAt: item.created_at ?? item.createdAt ?? null,
+    submittedAt: item.submitted_at ?? item.submittedAt ?? item.applied_at ?? null,
     applicationUrl: item.application_url ?? item.applicationUrl ?? opportunity.application_url ?? '',
   }
 }
@@ -118,6 +121,8 @@ export const api = {
   }),
   getSaved: async studentId => unwrapList(await request(`/api/saved/${encodeURIComponent(studentId)}`), ['opportunities', 'saved', 'saved_opportunities', 'items']).map(item => normalizeOpportunity(item.opportunity ?? item)),
   getApplications: async studentId => unwrapList(await request(`/api/applications/${encodeURIComponent(studentId)}`), ['applications', 'items']).map(normalizeApplication),
+  getDeadlines: studentId => request(`/api/deadlines/${encodeURIComponent(studentId)}?reminder_windows=7%2C3%2C1`),
+  getApplicationDashboard: studentId => request(`/api/dashboard/${encodeURIComponent(studentId)}`),
   addApplication: async (studentId, opportunityId, notes = '') => {
     const payload = await request('/api/applications', {
       method: 'POST',

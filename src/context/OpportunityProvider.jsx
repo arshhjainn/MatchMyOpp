@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { OpportunityContext } from './OpportunityContext'
 import { api, normalizeApplication, normalizeProfile } from '../api/client'
+import { normalizeDeadlineGroup } from '../utils/applicationDeadlines'
 
 const PROFILE_STORAGE_KEY = 'matchmyopp-student-profile'
 const isConnectionError = cause => cause.message.startsWith('Cannot connect to the backend')
@@ -19,9 +20,13 @@ export function OpportunityProvider({ children }) {
   const [opportunities, setOpportunities] = useState([])
   const [saved, setSaved] = useState([])
   const [applications, setApplications] = useState([])
+  const [applicationsLoading, setApplicationsLoading] = useState(false)
+  const [deadlineFeed, setDeadlineFeed] = useState(null)
+  const [applicationDashboard, setApplicationDashboard] = useState(null)
   const [apiStatus, setApiStatus] = useState('checking')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const opportunityDetails = useRef(new Map())
   const studentId = profile?.student_id
 
   useEffect(() => {
@@ -63,17 +68,71 @@ export function OpportunityProvider({ children }) {
   }, [studentId])
 
   const loadApplications = useCallback(async () => {
-    if (!studentId) return []
+    if (!studentId) {
+      setApplications([])
+      setDeadlineFeed(null)
+      setApplicationDashboard(null)
+      setApplicationsLoading(false)
+      return []
+    }
+    setApplicationsLoading(true)
     try {
       const items = await api.getApplications(studentId)
-      setApplications(items)
+      const [deadlineResult, dashboardResult] = await Promise.allSettled([
+        api.getDeadlines(studentId),
+        api.getApplicationDashboard(studentId),
+      ])
+      const deadlines = deadlineResult.status === 'fulfilled' ? deadlineResult.value : null
+      const dashboard = dashboardResult.status === 'fulfilled' ? dashboardResult.value : null
+      setDeadlineFeed(deadlines)
+      setApplicationDashboard(dashboard)
+      const deadlineEntries = Object.values(deadlines?.groups ?? {}).flat()
+      const deadlineByApplicationId = new Map(deadlineEntries.map(entry => [String(entry.application_id ?? entry.id), entry]))
+      const enriched = await Promise.all(items.map(async application => {
+        if (application.deadline && application.applicationUrl) return application
+        const opportunityId = application.opportunityId
+        if (opportunityId == null) return application
+        let detail = opportunityDetails.current.get(String(opportunityId))
+        if (!detail) {
+          try {
+            detail = await api.getOpportunity(opportunityId)
+            opportunityDetails.current.set(String(opportunityId), detail)
+          } catch {
+            return application
+          }
+        }
+        return {
+          ...application,
+          deadline: application.deadline ?? detail.deadline,
+          applicationUrl: application.applicationUrl || detail.applicationUrl,
+          organization: application.organization || detail.organization,
+        }
+      }))
+      const withDeadlines = enriched.map(application => {
+        const entry = deadlineByApplicationId.get(String(application.id))
+        return entry ? {
+          ...application,
+          deadline: application.deadline ?? entry.deadline,
+          deadlineGroup: normalizeDeadlineGroup(entry.deadline_group),
+          daysRemaining: entry.days_remaining,
+          actionable: entry.actionable,
+          reminderWindowsDue: entry.reminder_windows_due ?? [],
+        } : application
+      })
+      setApplications(withDeadlines)
       setApiStatus('online')
-      return items
+      setError('')
+      return withDeadlines
     } catch (cause) {
       setError(cause.message)
       setApiStatus(isConnectionError(cause) ? 'offline' : 'online')
       setApplications([])
+      setDeadlineFeed(null)
+      setApplicationDashboard(null)
       return []
+    }
+    finally {
+      setApplicationsLoading(false)
     }
   }, [studentId])
 
@@ -174,6 +233,7 @@ export function OpportunityProvider({ children }) {
         application_url: created.applicationUrl ?? opportunity?.applicationUrl,
       })
       setApplications(items => [application, ...items.filter(item => item.id !== application.id)])
+      await loadApplications()
       setApiStatus('online')
       setError('')
       return application
@@ -188,6 +248,7 @@ export function OpportunityProvider({ children }) {
     try {
       const updated = await api.updateApplication(applicationId, changes)
       setApplications(items => items.map(item => item.id === applicationId ? { ...item, ...updated } : item))
+      await loadApplications()
       setApiStatus('online')
       setError('')
       return updated
@@ -214,6 +275,9 @@ export function OpportunityProvider({ children }) {
     opportunities,
     saved,
     applications,
+    applicationsLoading,
+    deadlineFeed,
+    applicationDashboard,
     apiStatus,
     loading,
     error,
