@@ -1,6 +1,5 @@
 from sqlalchemy import (
     Column,
-    Boolean,
     String,
     Integer,
     Text,
@@ -24,8 +23,6 @@ class Student(Base):
     location = Column(String(100), nullable=False)
     skills = Column(JSON, nullable=False)
     interests = Column(JSON, nullable=False)
-    email = Column(String(254), nullable=True)
-    email_reminders_enabled = Column(Boolean, nullable=False, default=False)
 
 
 class Opportunity(Base):
@@ -89,28 +86,3 @@ class Application(Base):
     created_at = Column(DateTime, nullable=True)
     updated_at = Column(DateTime, nullable=True)
     submitted_at = Column(Date, nullable=True)
-
-
-class ReminderDelivery(Base):
-    __tablename__ = "reminder_deliveries"
-
-    id = Column(Integer, primary_key=True, index=True)
-    application_id = Column(
-        Integer,
-        ForeignKey("applications.id"),
-        nullable=False,
-    )
-    reminder_window_days = Column(Integer, nullable=False)
-    deadline = Column(Date, nullable=False)
-    status = Column(String(20), nullable=False, default="pending")
-    attempted_at = Column(DateTime, nullable=False)
-    sent_at = Column(DateTime, nullable=True)
-
-    __table_args__ = (
-        UniqueConstraint(
-            "application_id",
-            "reminder_window_days",
-            "deadline",
-            name="uq_reminder_application_window_deadline",
-        ),
-    )

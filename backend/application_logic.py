@@ -30,16 +30,6 @@ def parse_reminder_windows(value):
     return sorted(set(windows), reverse=True)
 
 
-def due_reminder_windows(*, deadline, today, status, reminder_windows, email, opted_in):
-    """Return due reminder windows only for opted-in, still-actionable applications."""
-    if not opted_in or not email or not deadline or (status or "").lower() not in {"interested", "preparing"}:
-        return []
-    days_remaining = (deadline - today).days
-    if days_remaining < 0 or days_remaining not in reminder_windows:
-        return []
-    return [days_remaining]
-
-
 def application_payload(application, opportunity=None):
     return {
         "id": application.id,

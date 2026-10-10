@@ -43,11 +43,9 @@ The frontend is configured to use `https://matchmyopp-1.onrender.com` by default
 
 ## Application tracker and deadline APIs
 
-The deployed application runs idempotent additive startup migrations after `create_all()`:
+The deployed application runs an idempotent startup migration after `create_all()`:
 
 - Adds nullable `created_at DATETIME`, `updated_at DATETIME`, and `submitted_at DATE` columns to an existing `applications` table when missing.
-- Adds nullable `email VARCHAR(254)` and `email_reminders_enabled BOOLEAN NOT NULL DEFAULT 0` columns to an existing `students` table when missing.
-- Creates the `reminder_deliveries` table for deduplicating email reminders.
 - Does not drop tables, rewrite existing values, or infer dates for older rows.
 - Existing application rows remain valid; their timestamps remain `NULL` until new edits provide an update timestamp.
 
@@ -58,25 +56,9 @@ New and extended routes:
 - `GET /api/applications/{student_id}` returns tracker rows joined with their opportunity title, category, actual deadline, official application URL, notes, and timestamps. Its original response fields remain present.
 - `GET /api/application/{application_id}` returns one application with the same response shape. The singular route avoids colliding with the existing student list route.
 - `GET /api/dashboard/{student_id}` returns tracked/submitted/shortlisted counts and deadline totals.
-- `GET /api/deadlines/{student_id}?reminder_windows=7,3,1` groups actual opportunity deadlines into due today, 3 days, 7 days, upcoming, overdue, and unknown. `reminder_candidates` only includes still-actionable `Interested`/`Preparing` applications exactly 7, 3, or 1 day before the deadline. Email is sent by the separate scheduled worker only for students who provide an email and opt in.
-- `POST /api/profile` and `GET /api/profile/{student_id}` accept/return optional `email` and `email_reminders_enabled` fields. Opt-in requires a valid email address; reminders default to disabled for existing and new profiles unless the student enables them.
+- `GET /api/deadlines/{student_id}?reminder_windows=7,3,1` groups actual opportunity deadlines into due today, 3 days, 7 days, upcoming, overdue, and unknown. `reminder_candidates` only includes still-actionable `Interested`/`Preparing` applications exactly 7, 3, or 1 day before the deadline. `delivery` is `in_app_only`.
 
-The deadline feed is computed on each GET. Email deduplication is persisted by application, reminder window, and deadline, so daily cron runs do not re-send a successfully delivered reminder. SMTP failures are marked failed and can be retried by the next run. A process crash after SMTP accepts a message but before the database records success can still result in a retry; SMTP does not provide a general exactly-once guarantee.
-
-### Configure email reminders in Render
-
-Use SMTP from a transactional email provider (for example, the SMTP credentials from your chosen provider). Add these values to the existing Render web service **and** the Cron Job below. Keep credentials private and never commit them:
-
-- `SMTP_HOST` — provider SMTP hostname.
-- `SMTP_PORT` — usually `587` for STARTTLS.
-- `SMTP_USERNAME` and `SMTP_PASSWORD` — provider-issued SMTP credentials; set both or neither.
-- `SMTP_FROM_EMAIL` — a sender address verified with the provider.
-- `SMTP_USE_STARTTLS=true` — use TLS on port 587.
-- `REMINDER_WINDOWS_DAYS=7,3,1` — optional comma-separated day windows; values may range from 1 to 30.
-
-The repository contains `backend/reminder_worker.py`. In Render, create a **Cron Job** from the same repository and `backend` branch, with root directory `backend`, build command `pip install -r requirements.txt`, and command `python reminder_worker.py`. Schedule it once daily (UTC). Copy the existing `DB_*` values and the SMTP values into the Cron Job environment. The API service itself does not send recurring mail during requests.
-
-The frontend must let students enter an email and explicitly enable reminders in their profile submission. Until that UI is added and the Render Cron Job and SMTP credentials are configured, users will continue to see in-app deadlines only.
+Deadline/reminder responses are derived on each GET, not persisted notifications. Re-reading the feed returns the current reminder candidate again by design; the backend does not send email or push messages, and does not claim delivery. Each student/opportunity pair remains unique through the existing database constraint.
 
 Run the pure backend logic checks from the `backend` directory:
 

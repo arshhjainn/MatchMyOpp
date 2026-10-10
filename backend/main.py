@@ -1,5 +1,4 @@
 from datetime import date, datetime, timezone
-from email.utils import parseaddr
 from typing import Optional
 
 from fastapi import FastAPI, Depends, HTTPException, Path, Query
@@ -9,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from database import Base, engine, get_db
-from models import Student, Opportunity, Swipe, Application, ReminderDelivery
+from models import Student, Opportunity, Swipe, Application
 from application_logic import (
     APPLICATION_STATUSES,
     SUBMITTED_APPLICATION_STATUSES,
@@ -49,8 +48,6 @@ class ProfileInput(BaseModel):
     location: str
     skills: list[str] = []
     interests: list[str] = []
-    email: Optional[str] = Field(default=None, max_length=254)
-    email_reminders_enabled: Optional[bool] = None
 
 
 class OpportunityInput(BaseModel):
@@ -140,26 +137,6 @@ def save_profile(data: ProfileInput, db: Session = Depends(get_db)):
         student = Student(student_id=data.student_id)
         db.add(student)
 
-    if "email" in data.model_fields_set:
-        email = (data.email or "").strip() or None
-        if email:
-            parsed_name, parsed_email = parseaddr(email)
-            if parsed_name or parsed_email != email or email.count("@") != 1:
-                raise HTTPException(status_code=422, detail="Enter a valid email address")
-            local_part, domain = email.rsplit("@", 1)
-            if not local_part or "." not in domain or domain.startswith(".") or domain.endswith("."):
-                raise HTTPException(status_code=422, detail="Enter a valid email address")
-        student.email = email
-
-    if data.email_reminders_enabled is not None:
-        student.email_reminders_enabled = data.email_reminders_enabled
-
-    if student.email_reminders_enabled and not student.email:
-        raise HTTPException(
-            status_code=422,
-            detail="Add an email address before enabling email reminders",
-        )
-
     student.name = data.name
     student.age = data.age
     student.grade = data.grade
@@ -190,8 +167,6 @@ def get_profile(student_id: str, db: Session = Depends(get_db)):
         "location": student.location,
         "skills": student.skills,
         "interests": student.interests,
-        "email": student.email,
-        "email_reminders_enabled": bool(student.email_reminders_enabled),
     }
 
 
@@ -563,7 +538,7 @@ def update_application(
 @app.get(
     "/api/deadlines/{student_id}",
     summary="List tracked deadlines and in-app reminder candidates",
-    description="Groups actual opportunity deadlines and returns reminder windows due today. Scheduled email delivery is handled by the separate reminder worker for students who opt in.",
+    description="Groups actual opportunity deadlines and returns reminder windows due today. This endpoint does not send email or push notifications.",
 )
 def get_deadlines(
     student_id: str = Path(min_length=1, max_length=50),
@@ -598,7 +573,7 @@ def get_deadlines(
         "reminder_windows_days": windows,
         "groups": groups,
         "reminder_candidates": reminder_candidates,
-        "delivery": "in_app_and_scheduled_email",
+        "delivery": "in_app_only",
     }
 
 
